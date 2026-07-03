@@ -1,0 +1,29 @@
+diff --git a/R/pipeline.R b/R/pipeline.R
+index 8d5cf49..cf8679e 100644
+--- a/R/pipeline.R
++++ b/R/pipeline.R
+@@ -115,7 +115,7 @@ print.ssb_result <- function(x, ...) {
+ #' @export
+ summary.ssb_result <- function(object, ...) print(object, ...)
+ 
+-#' @importFrom ggplot2 autoplot
++#' @method autoplot ssb_result
+ #' @export
+ autoplot.ssb_result <- function(object, ...) {
+   if (!is.null(object$rotemberg)) return(ssb_plot_rotemberg(object$rotemberg, ...))
+diff --git a/R/plots.R b/R/plots.R
+index b89c798..c42c2be 100644
+--- a/R/plots.R
++++ b/R/plots.R
+@@ -110,9 +110,10 @@ ssb_plot_se <- function(x, title = NULL, ...) {
+ 
+ ## autoplot generics -----------------------------------------------------------
+ 
+-#' @importFrom ggplot2 autoplot
++#' @method autoplot ssb_rotemberg
+ #' @export
+ autoplot.ssb_rotemberg <- function(object, ...) ssb_plot_rotemberg(object, ...)
+ 
++#' @method autoplot ssb_estimate
+ #' @export
+ autoplot.ssb_estimate <- function(object, ...) ssb_plot_se(object, ...)

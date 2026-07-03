@@ -110,9 +110,10 @@ ssb_plot_se <- function(x, title = NULL, ...) {
 
 ## autoplot generics -----------------------------------------------------------
 
-#' @importFrom ggplot2 autoplot
+#' @method autoplot ssb_rotemberg
 #' @export
 autoplot.ssb_rotemberg <- function(object, ...) ssb_plot_rotemberg(object, ...)
 
+#' @method autoplot ssb_estimate
 #' @export
 autoplot.ssb_estimate <- function(object, ...) ssb_plot_se(object, ...)

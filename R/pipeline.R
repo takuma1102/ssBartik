@@ -115,7 +115,7 @@ print.ssb_result <- function(x, ...) {
 #' @export
 summary.ssb_result <- function(object, ...) print(object, ...)
 
-#' @importFrom ggplot2 autoplot
+#' @method autoplot ssb_result
 #' @export
 autoplot.ssb_result <- function(object, ...) {
   if (!is.null(object$rotemberg)) return(ssb_plot_rotemberg(object$rotemberg, ...))
