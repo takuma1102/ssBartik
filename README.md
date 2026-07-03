@@ -122,8 +122,9 @@ the original Stata implementation).
 Methods:
 
 - Adão, Kolesár & Morales (2019), *Shift-Share Designs: Theory and Inference*, QJE.
-- Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud; and (2025) *A Practical Guide to Shift-Share Instruments*.
-- Borusyak, Hull & Jaravel (2025), *Design-based identification with formula instruments: a review*, The Econometrics Journal 28(1), 83–108, <doi:10.1093/ectj/utae003>.
+- Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud.
+- Borusyak, Hull & Jaravel (2025), *A Practical Guide to Shift-Share Instruments*, Journal of Economic Perspectives.
+- Borusyak, Hull & Jaravel (2025), *Design-based identification with formula instruments: a review*, The Econometrics Journal.
 - Goldsmith-Pinkham, Sorkin & Swift (2020), *Bartik Instruments: What, When, Why, and How*, AER.
 
 ## License
