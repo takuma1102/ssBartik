@@ -1,19 +1,16 @@
-# ssBartik
+# ssBartik: R package for an end-to-end pipeline for shift-share / Bartik IV designs
 
-**An end-to-end pipeline for shift-share (Bartik) instrumental-variable designs.**
+[![R-CMD-check](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
-Shift-share / Bartik IV analysis in R is currently spread across several
-excellent but single-purpose tools — one package computes Rotemberg weights,
-another aggregates to the shock level, another provides exposure-robust standard
-errors — each with its own data conventions. `ssBartik` connects those steps
-into one consistent workflow: **construct → diagnose → estimate → infer →
-visualise**, organised around the two identification routes of the modern
-literature.
+Shift-share / Bartik IV analysis in R is currently spread across several excellent but single-purpose tools, each
+of which has its own data conventions. `ssBartik` connects those steps
+into one consistent workflow: **variable construct → diagnose → estimate → infer →
+visualize**, organized around the two identification routes of the modern
+literature (i.e., exogeneous **shift** and exogenous **share** approaches).
 
-You describe the design once; you pick the identification route with a single
-argument (`exogenous = "share"` or `"shift"`); everything downstream — the right
-diagnostics, the right controls, the right inference, and publication-ready
-figures — follows.
+Once you pick the identification route with a single
+argument (`exogenous = "share"` or `"shift"`); everything downstream follows from variable construction and iagnostics to visualization.
 
 ## Installation
 
@@ -22,7 +19,7 @@ figures — follows.
 remotes::install_github("takuma1102/ssBartik")
 ```
 
-`ggplot2` is a dependency (figures). `ShiftShareSE` (for AKM/AKM0 inference) is
+`ShiftShareSE` by Prof. Michal Kolesár (for AKM/AKM0 inference) is
 optional and used when installed.
 
 ## Quick start
@@ -30,13 +27,10 @@ optional and used when installed.
 ```r
 library(ssBartik)
 
-# a self-contained simulated design
-sim <- ssb_simulate(n_loc = 500, n_sec = 25, beta = 1.2, seed = 11)
-
 # one call: build the design and run the full pipeline
-res <- ssbartik(sim$data, sim$shares, sim$shocks,
+res <- ssbartik(df$data, df$shares, df$shocks,
                 controls = "w1", weights = "pop",
-                exogenous = "share",       # or "shift"
+                exogenous = "share",       # or "shift"; each analysist has to pick the right identification design
                 covariates = "w1")
 res                                        # printed estimate + diagnostics
 
@@ -47,7 +41,7 @@ autoplot(res$estimate)                     # side-by-side SE comparison
 Or step through it explicitly:
 
 ```r
-d   <- ssb_design(sim$data, sim$shares, sim$shocks,
+d   <- ssb_design(df$data, df$shares, df$shocks,
                   controls = "w1", weights = "pop", exogenous = "share")
 rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
 est <- ssb_estimate(d)                     # naive / EHW / cluster / AKM / AKM0
