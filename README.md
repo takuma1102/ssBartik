@@ -1,0 +1,132 @@
+# ssBartik
+
+**An end-to-end pipeline for shift-share (Bartik) instrumental-variable designs.**
+
+Shift-share / Bartik IV analysis in R is currently spread across several
+excellent but single-purpose tools — one package computes Rotemberg weights,
+another aggregates to the shock level, another provides exposure-robust standard
+errors — each with its own data conventions. `ssBartik` connects those steps
+into one consistent workflow: **construct → diagnose → estimate → infer →
+visualise**, organised around the two identification routes of the modern
+literature.
+
+You describe the design once; you pick the identification route with a single
+argument (`exogenous = "share"` or `"shift"`); everything downstream — the right
+diagnostics, the right controls, the right inference, and publication-ready
+figures — follows.
+
+## Installation
+
+```r
+# install.packages("remotes")
+remotes::install_github("takuma1102/ssBartik")
+```
+
+`ggplot2` is a dependency (figures). `ShiftShareSE` (for AKM/AKM0 inference) is
+optional and used when installed.
+
+## Quick start
+
+```r
+library(ssBartik)
+
+# a self-contained simulated design
+sim <- ssb_simulate(n_loc = 500, n_sec = 25, beta = 1.2, seed = 11)
+
+# one call: build the design and run the full pipeline
+res <- ssbartik(sim$data, sim$shares, sim$shocks,
+                controls = "w1", weights = "pop",
+                exogenous = "share",       # or "shift"
+                covariates = "w1")
+res                                        # printed estimate + diagnostics
+
+autoplot(res)                              # headline Rotemberg figure
+autoplot(res$estimate)                     # side-by-side SE comparison
+```
+
+Or step through it explicitly:
+
+```r
+d   <- ssb_design(sim$data, sim$shares, sim$shocks,
+                  controls = "w1", weights = "pop", exogenous = "share")
+rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
+est <- ssb_estimate(d)                     # naive / EHW / cluster / AKM / AKM0
+ssb_plot_rotemberg(rot)
+ssb_plot_se(est)
+```
+
+## The two routes
+
+The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
+route you take. The `exogenous` flag governs which diagnostics and controls
+apply:
+
+| step | `exogenous = "share"` (GPSS 2020) | `exogenous = "shift"` (BHJ 2022) |
+|------|-----------------------------------|----------------------------------|
+| headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
+| credibility check   | share balance vs. observables | shock balance (hook) |
+| robustness          | leave-one-sector-out | leave-one-sector-out |
+| pre-period          | pre-trend check | pre-trend check |
+| extra control       | — | sum-of-shares (auto, when incomplete) |
+| inference           | EHW / cluster / AKM / AKM0 | EHW / cluster / AKM / AKM0 |
+
+## The headline figure
+
+`ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
+diagnostic: each sector's just-identified estimate against its first-stage
+F-statistic, bubble area proportional to the absolute Rotemberg weight, positive
+weights as blue open circles and negative as amber open diamonds, with the
+overall estimate marked by the dashed line.
+
+![Rotemberg weights](man/figures/README-rotemberg.png)
+
+`ssb_plot_se()` puts the point estimate next to every SE method's interval, with
+the axis always including the null at 0, so both the practical cost of the
+exposure-robust correction *and* each method's verdict on significance are
+immediate. (In this example the naive/EHW interval excludes 0 while AKM0 does
+not.)
+
+![SE comparison](man/figures/README-se.png)
+
+## Function map
+
+| function | purpose |
+|----------|---------|
+| `ssb_design()` / `ssbartik()` | define a design / one-call pipeline |
+| `ssb_rotemberg()` | Rotemberg-weight decomposition |
+| `ssb_estimate()` | point estimate + naive/EHW/cluster/AKM/AKM0 SEs |
+| `ssb_shock_summary()` | effective number of shocks, exposure concentration |
+| `ssb_loo()` | leave-one-sector-out sensitivity |
+| `ssb_share_balance()` | share-vs-observables balance (share route) |
+| `ssb_recenter()` | recentering (Borusyak & Hull) |
+| `ssb_pretrend()`, `ssb_shock_balance()` | pre-trend / shock-balance (v0.1 hooks) |
+| `ssb_plot_rotemberg()`, `ssb_plot_se()` | figures |
+
+## Status (v0.1)
+
+Working and validated: instrument construction (cross-section and
+sector×period panels), Rotemberg decomposition (weights sum to one; the overall
+estimate matches the 2SLS estimate exactly by FWL), the SE panel (the native
+point estimate matches `ShiftShareSE` to machine precision), shock summary,
+leave-one-out, share balance, and demean-recentering.
+
+Planned next: `.Rd` help pages via roxygen; a native `ssaggregate`-style
+shock-level regression and equivalence check; permutation-based recentering;
+full shock-balance and pre-trend tests carried by the design object.
+
+## Acknowledgements & references
+
+`ssBartik` stands on tools built by others, gratefully:
+[**ShiftShareSE**](https://github.com/kolesarm/ShiftShareSE) (Michal Kolesár),
+[**ssaggregate**](https://github.com/kylebutts/ssaggregate) (Kyle Butts), and
+[**bartik.weight**](https://github.com/jjchern/bartik.weight) (JJ Chern).
+
+Methods:
+
+- Adão, Kolesár & Morales (2019), *Shift-Share Designs: Theory and Inference*, QJE.
+- Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud; and (2025) *A Practical Guide to Shift-Share Instruments*.
+- Goldsmith-Pinkham, Sorkin & Swift (2020), *Bartik Instruments: What, When, Why, and How*, AER.
+
+## License
+
+MIT © 2026 Takuma Iwasaki (Stanford University).
