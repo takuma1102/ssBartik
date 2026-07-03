@@ -41,3 +41,4 @@ Generates a small, self-contained shift-share dataset in the long format
 expected by [ssb_design()]: a unit-level table, a long shares table, and a
 shocks table. Useful for examples, tests, and demonstrations.
 }
+\keyword{internal}

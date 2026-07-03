@@ -5,7 +5,7 @@
 #' reports a panel of standard errors side by side so the practical importance
 #' of the correction is visible:
 #' \itemize{
-#'   \item `homoskedastic` --- classical IV,
+#'   \item `iid` --- classical (homoskedastic) IV,
 #'   \item `ehw` --- Eicker-Huber-White (heteroskedasticity-robust),
 #'   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
 #'   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust SE / CI,
@@ -23,10 +23,11 @@
 #'   first-stage F as an attribute. Plot with [ssb_plot_se()].
 #' @export
 ssb_estimate <- function(design,
-                         methods = c("homoskedastic", "ehw", "cluster",
+                         methods = c("iid", "ehw", "cluster",
                                      "akm", "akm0"),
                          level = 0.95) {
   stopifnot(inherits(design, "ssb_design"))
+  methods <- ifelse(methods %in% c("homoskedastic", "homoscedastic"), "iid", methods)
   d <- design
   w <- .ssb_w(d); C <- .ssb_C(d)
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
@@ -54,7 +55,7 @@ ssb_estimate <- function(design,
   akm_tab <- if (length(akm_req)) .ssb_akm(d, akm_req, level) else NULL
 
   for (mth in methods) {
-    if (mth == "homoskedastic") {
+    if (mth == "iid") {
       sig2 <- sum(w * e^2) / max(n - 1, 1)
       rows[[mth]] <- row_native(mth, sqrt(sig2 * sum(w * rz^2)) / abs(zx))
     } else if (mth == "ehw") {
@@ -121,6 +122,7 @@ print.ssb_estimate <- function(x, ...) {
   cat("<ssBartik estimate>\n")
   cat(sprintf("  first-stage F : %.1f\n", attr(x, "fstat")))
   tab <- x[c("method", "estimate", "std.error", "conf.low", "conf.high", "note")]
+  tab$method <- toupper(tab$method)
   print(format(tab, digits = 3), row.names = FALSE)
   invisible(x)
 }

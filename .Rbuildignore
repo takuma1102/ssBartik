@@ -1,0 +1,5 @@
+^\.github$
+^ssBartik_local_check\.R$
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.gitignore$

@@ -58,9 +58,21 @@ ssb_pipeline <- function(design, covariates = NULL, pre_y = NULL,
 #' @return An `ssb_result` object.
 #' @export
 #' @examples
-#' sim <- ssb_simulate(seed = 1)
-#' res <- ssbartik(sim$data, sim$shares, sim$shocks,
-#'                 controls = "w1", weights = "pop", exogenous = "share")
+#' # Bring your own data; this is a small synthetic design for illustration.
+#' set.seed(1)
+#' n_loc <- 60L; n_sec <- 8L
+#' shares <- expand.grid(location = seq_len(n_loc), sector = seq_len(n_sec))
+#' shares$share <- stats::runif(nrow(shares))
+#' tot <- tapply(shares$share, shares$location, sum)
+#' shares$share <- shares$share / tot[as.character(shares$location)]
+#' shocks <- data.frame(sector = seq_len(n_sec), shock = stats::rnorm(n_sec))
+#' Z <- tapply(shares$share, list(shares$location, shares$sector), sum)
+#' Z[is.na(Z)] <- 0
+#' inst <- as.numeric(Z %*% shocks$shock)
+#' dat <- data.frame(location = seq_len(n_loc),
+#'                   x = 4 * inst + stats::rnorm(n_loc, sd = 0.3))
+#' dat$y <- 1.2 * dat$x + stats::rnorm(n_loc, sd = 0.3)
+#' res <- ssbartik(dat, shares, shocks, exogenous = "share")
 #' res
 #' \dontrun{
 #' autoplot(res)                       # headline Rotemberg figure

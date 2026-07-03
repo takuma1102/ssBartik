@@ -74,6 +74,8 @@ overall estimate marked by the dashed line.
 
 ![Rotemberg weights](man/figures/README-rotemberg.png)
 
+*The design of this figure follows the Rotemberg-weight visualisation in Goldsmith-Pinkham, Sorkin & Swift (2020).*
+
 `ssb_plot_se()` puts the point estimate next to every SE method's interval, with
 the axis always including the null at 0, so both the practical cost of the
 exposure-robust correction *and* each method's verdict on significance are
@@ -112,13 +114,16 @@ full shock-balance and pre-trend tests carried by the design object.
 
 `ssBartik` stands on tools built by others, gratefully:
 [**ShiftShareSE**](https://github.com/kolesarm/ShiftShareSE) (Michal Kolesár),
-[**ssaggregate**](https://github.com/kylebutts/ssaggregate) (Kyle Butts), and
-[**bartik.weight**](https://github.com/jjchern/bartik.weight) (JJ Chern).
+[**ssaggregate**](https://github.com/kylebutts/ssaggregate) (Kyle Butts),
+[**bartik.weight**](https://github.com/jjchern/bartik.weight) (JJ Chern), and
+[**bartik-weight**](https://github.com/paulgp/bartik-weight) (Paul Goldsmith-Pinkham,
+the original Stata implementation).
 
 Methods:
 
 - Adão, Kolesár & Morales (2019), *Shift-Share Designs: Theory and Inference*, QJE.
 - Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud; and (2025) *A Practical Guide to Shift-Share Instruments*.
+- Borusyak, Hull & Jaravel (2025), *Design-based identification with formula instruments: a review*, The Econometrics Journal 28(1), 83–108, <doi:10.1093/ectj/utae003>.
 - Goldsmith-Pinkham, Sorkin & Swift (2020), *Bartik Instruments: What, When, Why, and How*, AER.
 
 ## License

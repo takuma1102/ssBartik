@@ -17,7 +17,7 @@
 #'
 #' @return A list with elements `data`, `shares`, `shocks`, and `beta`
 #'   (the true coefficient), suitable for passing to [ssb_design()].
-#' @export
+#' @keywords internal
 ssb_simulate <- function(n_loc = 300, n_sec = 20, beta = 1.2,
                          share_conc = 0.5, endog = 0.6,
                          incomplete = FALSE, seed = NULL) {

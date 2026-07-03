@@ -1,0 +1,9 @@
+# local-only: do not commit
+ssBartik_local_check.R
+
+# R / RStudio cruft
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj

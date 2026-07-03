@@ -90,7 +90,8 @@ ssb_plot_se <- function(x, title = NULL, ...) {
   .data <- ggplot2::.data
   df <- x[!is.na(x$std.error), , drop = FALSE]
   lev <- attr(x, "level")
-  df$method <- factor(df$method, levels = rev(df$method))
+  lab <- toupper(df$method)
+  df$method <- factor(lab, levels = rev(lab))
 
   ggplot2::ggplot(df, ggplot2::aes(y = .data$method, x = .data$estimate)) +
     ggplot2::geom_vline(xintercept = 0, colour = "grey45", linewidth = 0.5) +

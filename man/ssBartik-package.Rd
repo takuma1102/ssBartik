@@ -23,10 +23,13 @@ either way, and the flag governs which diagnostics and controls apply.
 \section{Acknowledgements & references}{
 
 Built with gratitude on the work of Michal Kolesar (\pkg{ShiftShareSE}),
-Kyle Butts (`ssaggregate`) and Junjie (JJ) Chern (`bartik.weight`).
+Kyle Butts (`ssaggregate`), Junjie (JJ) Chern (`bartik.weight`) and
+Paul Goldsmith-Pinkham (`bartik-weight`, the original Stata implementation).
 Core methods: Adao, Kolesar & Morales (2019, QJE); Borusyak, Hull & Jaravel
-(2022, REStud) and Borusyak, Hull & Jaravel (2025, "A Practical Guide to
-Shift-Share Instruments"); Goldsmith-Pinkham, Sorkin & Swift (2020, AER).
+(2022, REStud), Borusyak, Hull & Jaravel (2025, "A Practical Guide to
+Shift-Share Instruments") and Borusyak, Hull & Jaravel (2025, "Design-based
+identification with formula instruments: a review", Econometrics Journal
+28(1), 83-108); Goldsmith-Pinkham, Sorkin & Swift (2020, AER).
 }
 
 \seealso{

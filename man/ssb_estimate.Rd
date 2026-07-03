@@ -6,7 +6,7 @@
 \usage{
 ssb_estimate(
   design,
-  methods = c("homoskedastic", "ehw", "cluster", "akm", "akm0"),
+  methods = c("iid", "ehw", "cluster", "akm", "akm0"),
   level = 0.95
 )
 }
@@ -28,7 +28,7 @@ the constructed Bartik instrument, controls partialled out via FWL) and
 reports a panel of standard errors side by side so the practical importance
 of the correction is visible:
 \itemize{
-  \item `homoskedastic` --- classical IV,
+  \item `iid` --- classical (homoskedastic) IV,
   \item `ehw` --- Eicker-Huber-White (heteroskedasticity-robust),
   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust SE / CI,
