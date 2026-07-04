@@ -13,6 +13,16 @@ literature (i.e., exogeneous **shift** and exogenous **share** approaches).
 Once you pick the identification route with a single
 argument (`exogenous = "share"` or `"shift"`), everything downstream follows from variable construction to visualization.
 
+## The headline visualization
+
+This package produces paper-ready plots and tables about analysis results. Below are a few examples.
+
+<img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
+*The design of this figure is intended to follow the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin & Swift (2020).*
+
+<img src="man/figures/README-se.png" alt="SE comparison" />
+<img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
+
 ## Install
 
 ```r
@@ -50,6 +60,23 @@ ssb_plot_rotemberg(rot)
 ssb_plot_se(est)
 ```
 
+## The two routes
+
+The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
+route you take. The `exogenous` flag governs which diagnostics and controls
+apply:
+
+| step | `exogenous = "share"` (GPSS 2020) | `exogenous = "shift"` (AKM 2019; BHJ 2022) |
+|------|-----------------------------------|----------------------------------|
+| headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
+| credibility check   | share balance vs. observables | shock balance vs. characteristics |
+| cross-instrument    | overidentification across β_k | location ↔ shock IV equivalence |
+| pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
+| robustness          | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
+| extra control       | — | sum-of-shares (auto, when incomplete) |
+| inference           | EHW / cluster / two-way / AKM / AKM0 | EHW / cluster / two-way / AKM / AKM0 |
+
+
 ## Diagnostics at a glance
 
 With a design in hand, each credibility check is a single call. You supply the
@@ -81,74 +108,6 @@ Each returns a small object with a readable `print()` method; the same checks
 run automatically inside `ssbartik()` / `ssb_pipeline()` when you pass the
 corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`).
 
-## The two routes
-
-The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
-route you take. The `exogenous` flag governs which diagnostics and controls
-apply:
-
-| step | `exogenous = "share"` (GPSS 2020) | `exogenous = "shift"` (AKM 2019; BHJ 2022) |
-|------|-----------------------------------|----------------------------------|
-| headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
-| credibility check   | share balance vs. observables | shock balance vs. characteristics |
-| cross-instrument    | overidentification across β_k | location ↔ shock IV equivalence |
-| pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
-| robustness          | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
-| extra control       | — | sum-of-shares (auto, when incomplete) |
-| inference           | EHW / cluster / two-way / AKM / AKM0 | EHW / cluster / two-way / AKM / AKM0 |
-
-## The headline figure
-
-`ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
-diagnostic: each sector's just-identified estimate against its first-stage
-F-statistic, bubble area proportional to the absolute Rotemberg weight, positive
-weights as blue open circles and negative as amber open diamonds, with the
-overall estimate marked by the dashed line.
-
-<img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
-
-*The design of this figure is intended to follow the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin & Swift (2020).*
-
-`ssb_plot_se()` puts the point estimate next to every SE method's interval, with
-the axis always including the null at 0, so both the practical cost of the
-exposure-robust correction *and* each method's verdict on significance are
-immediate. (In this example the naive/EHW interval excludes 0 while AKM0 does
-not.)
-
-<img src="man/figures/README-se.png" alt="SE comparison" />
-
-## Paper-ready tables
-
-The Rotemberg decomposition is the headline credibility table of the
-exogenous-shares approach (Goldsmith-Pinkham, Sorkin & Swift 2020): it shows
-which shocks the estimate leans on and whether their just-identified estimates
-agree. `ssb_rotemberg()` prints a console summary by default, and exports a
-publication-quality table of the top-weight shocks on demand:
-
-```r
-rot <- ssb_rotemberg(d)
-print(rot)                                 # console summary (default)
-
-writeLines(format(rot, "latex"))           # paste-ready booktabs LaTeX
-writeLines(format(rot, "markdown"))        # GitHub pipe table
-print(rot, format = "latex", n = 8)        # same, straight from print()
-
-plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf); see below
-```
-
-<img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
-
-The `"latex"` output uses booktabs rules and math-mode headers; `plot()` renders
-the same table as a tight, normal-spacing paper figure.
-
-The headline estimate table takes the same treatment: `format(est, "latex")`,
-`format(est, "markdown")`, or `print(est, format = "latex")` emit a paste-ready
-comparison of the estimate across SE methods.
-
-`format(x, "latex"/"markdown")` also works on the other result tables:
-`ssb_loo()`, `ssb_overid()`, `ssb_shock_summary()`, `ssb_shock_balance()`,
-`ssb_weight_summary()`, and `ssb_drop_top()`.
-
 ## Function map
 
 **Construct**
@@ -166,6 +125,23 @@ comparison of the estimate across SE methods.
 | `ssb_weight_summary()` | Rotemberg-weight summary + correlations (α vs. βₖ, F, covariates) |
 | `ssb_shock_summary()` | effective number of shocks, exposure concentration |
 | `ssb_first_stage()` | first-stage strength: standard & exposure-robust (effective) F |
+
+> **Note** The Rotemberg decomposition is the headline credibility table of the
+> exogenous-shares approach (Goldsmith-Pinkham, Sorkin & Swift 2020): it shows
+> which shocks the estimate leans on and whether their just-identified estimates
+> agree. `ssb_rotemberg()` prints a console summary by default, and exports a
+> publication-quality table of the top-weight shocks on demand:
+
+```r
+rot <- ssb_rotemberg(d)
+print(rot)                                 # console summary (default)
+
+writeLines(format(rot, "latex"))           # paste-ready booktabs LaTeX
+writeLines(format(rot, "markdown"))        # GitHub pipe table
+print(rot, format = "latex", n = 8)        # same, straight from print()
+
+plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf); see below
+```
 
 **Estimate & infer**
 
@@ -197,6 +173,18 @@ comparison of the estimate across SE methods.
 | `ssb_plot_loo()` / `ssb_plot_ri()` | leave-one-out sensitivity / randomization-inference null |
 | `ssb_plot_overid()` / `ssb_plot_shocks()` | just-identified estimate dispersion / exposure Lorenz curve |
 | `autoplot()` | \pkg{ggplot2} method for any of the figures above |
+
+> **Note 1** `ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
+> diagnostic: each sector's just-identified estimate against its first-stage
+> F-statistic, bubble area proportional to the absolute Rotemberg weight, positive
+> weights as blue open circles and negative as amber open diamonds, with the
+> overall estimate marked by the dashed line.
+
+> **Note 2** `ssb_plot_se()` puts the point estimate next to every SE method's interval, with
+> the axis always including the null at 0, so both the practical cost of the
+> exposure-robust correction *and* each method's verdict on significance are
+> immediate. (In this example the naive/EHW interval excludes 0 while AKM0 does
+> not.)
 
 ## Status
 
