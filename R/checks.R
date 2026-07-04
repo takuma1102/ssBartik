@@ -33,10 +33,13 @@ ssb_overid <- function(design, min_F = 0) {
   bb <- bk[ok]; ww <- 1 / vk[ok]
   bbar <- sum(ww * bb) / sum(ww)
   Q  <- sum(ww * (bb - bbar)^2); df <- length(bb) - 1
+  instruments <- data.frame(sector = design$mat$cell_sector[ok], beta = bb,
+                            se = sqrt(vk[ok]), F = Fk[ok], stringsAsFactors = FALSE)
   structure(list(Q = Q, df = df, p = stats::pchisq(Q, df, lower.tail = FALSE),
                  I2 = max(0, (Q - df) / Q), beta_bar = bbar,
                  n_instruments = length(bb), n_dropped = sum(!ok),
-                 n_weak = sum(Fk[ok] < 10)), class = "ssb_overid")
+                 n_weak = sum(Fk[ok] < 10), instruments = instruments),
+            class = "ssb_overid")
 }
 
 #' Placebo-outcome test

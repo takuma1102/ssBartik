@@ -193,7 +193,10 @@ comparison of the estimate across SE methods.
 
 | function | purpose |
 |----------|---------|
-| `ssb_plot_rotemberg()` / `ssb_plot_se()` / `autoplot()` | figures |
+| `ssb_plot_rotemberg()` / `ssb_plot_se()` | Rotemberg bubble chart / SE comparison |
+| `ssb_plot_loo()` / `ssb_plot_ri()` | leave-one-out sensitivity / randomization-inference null |
+| `ssb_plot_overid()` / `ssb_plot_shocks()` | just-identified estimate dispersion / exposure Lorenz curve |
+| `autoplot()` | \pkg{ggplot2} method for any of the figures above |
 
 ## Status
 
