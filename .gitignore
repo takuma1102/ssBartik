@@ -1,9 +1,39 @@
-# local-only: do not commit
+# --- local-only: do not commit ---
 ssBartik_local_check.R
 
-# R / RStudio cruft
-.Rproj.user
+# --- R / RStudio session files ---
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
 *.Rproj
+
+# --- R build / check artifacts ---
+*.Rcheck/
+*.tar.gz
+*.tgz
+*.zip
+..Rcheck/
+/ssBartik.Rcheck/
+
+# --- caches / temp ---
+*.rds
+*.RDS
+.Rapp.history
+src/*.o
+src/*.so
+src/*.dll
+
+# --- OS clutter ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- editor ---
+.vscode/
+*.swp
+*~
+
+# --- patches (local only, never commit) ---
+*.patch
+*.diff

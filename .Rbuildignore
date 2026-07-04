@@ -3,3 +3,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.gitignore$
+^\.gitattributes$
+^\.lintr$
+^.*\.patch$
+^.*\.diff$
