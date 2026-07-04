@@ -11,7 +11,7 @@ into one consistent workflow: (a) variable construct → (b) diagnose → (c) es
 literature (i.e., exogeneous **shift** and exogenous **share** approaches).
 
 Once you pick the identification route with a single
-argument (`exogenous = "share"` or `"shift"`); everything downstream follows from variable construction and iagnostics to visualization.
+argument (`exogenous = "share"` or `"shift"`), everything downstream follows from variable construction to visualization.
 
 ## Install
 
