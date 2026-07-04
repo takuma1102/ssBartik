@@ -75,7 +75,7 @@ overall estimate marked by the dashed line.
 
 ![Rotemberg weights](man/figures/README-rotemberg.png)
 
-*The design of this figure follows the Rotemberg-weight visualisation in Goldsmith-Pinkham, Sorkin & Swift (2020).*
+*The design of this figure is intended to follow the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin & Swift (2020).*
 
 `ssb_plot_se()` puts the point estimate next to every SE method's interval, with
 the axis always including the null at 0, so both the practical cost of the
@@ -103,16 +103,20 @@ not.)
 
 Experimental, but the output schema is intended to be stable. Pin package versions in production code.
 
-## Acknowledgements & references
+## Acknowledgements
 
-`ssBartik` stands on tools built by others, gratefully:
+When developing `ssBartik`, I gratefully referenced tools built by others:
 [**ShiftShareSE**](https://github.com/kolesarm/ShiftShareSE) (Michal Kolesár),
 [**ssaggregate**](https://github.com/kylebutts/ssaggregate) (Kyle Butts),
 [**bartik.weight**](https://github.com/jjchern/bartik.weight) (JJ Chern), and
-[**bartik-weight**](https://github.com/paulgp/bartik-weight) (Paul Goldsmith-Pinkham,
-the original Stata implementation).
+[**bartik-weight**](https://github.com/paulgp/bartik-weight) (Paul Goldsmith-Pinkham for Stata and R).
+Kudos to their authors for making these ideas legible and reproducible.
 
-Methods:
+To keep the package lightweight and close to base R, `ssBartik` depends on only `ShiftShareSE`, listed under Suggests and called solely for the AKM / AKM0 exposure-robust standard errors. The other three packages above are neither imported nor called. They served purely as references and the functionality they built is reimplemented natively in `ssBartik` in base R so that external dependencies stay minimal.
+
+## Citation
+
+Please also cite whichever underlying methods and tests you actually used.
 
 - Adão, Kolesár & Morales (2019), *Shift-Share Designs: Theory and Inference*, QJE.
 - Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud.
