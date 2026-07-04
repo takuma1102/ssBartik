@@ -141,6 +141,14 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 The `"latex"` output uses booktabs rules and math-mode headers; `plot()` renders
 the same table as a tight, normal-spacing paper figure.
 
+The headline estimate table takes the same treatment: `format(est, "latex")`,
+`format(est, "markdown")`, or `print(est, format = "latex")` emit a paste-ready
+comparison of the estimate across SE methods.
+
+`format(x, "latex"/"markdown")` also works on the other result tables:
+`ssb_loo()`, `ssb_overid()`, `ssb_shock_summary()`, `ssb_shock_balance()`,
+`ssb_weight_summary()`, and `ssb_drop_top()`.
+
 ## Function map
 
 **Construct**
@@ -163,7 +171,7 @@ the same table as a tight, normal-spacing paper figure.
 
 | function | purpose |
 |----------|---------|
-| `ssb_estimate()` | point estimate + naive/EHW/cluster/two-way/AKM/AKM0 SEs |
+| `ssb_estimate()` | point estimate + naive/EHW/cluster/two-way/AKM/AKM0 SEs (+ `format()` paper table) |
 | `ssb_aggregate()` / `ssb_shock_iv()` | shock-level aggregation and shock-level IV |
 | `ssb_equivalence()` | location-level ↔ shock-level IV equivalence check |
 

@@ -127,7 +127,8 @@ print.ssb_result <- function(x, ...) {
   }
   cat("\n[leave-one-out] overall beta =",
       sprintf("%.4f", attr(x$loo, "beta_hat")), "\n")
-  print(format(x$loo, digits = 3), row.names = FALSE)
+  loo_tab <- x$loo; class(loo_tab) <- "data.frame"   # plain df: don't dispatch to format.ssb_loo
+  print(format(loo_tab, digits = 3), row.names = FALSE)
   cat("=================================================================\n")
   invisible(x)
 }

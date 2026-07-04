@@ -90,7 +90,7 @@ ssb_plot_se <- function(x, title = NULL, ...) {
   .data <- ggplot2::.data
   df <- x[!is.na(x$std.error), , drop = FALSE]
   lev <- attr(x, "level")
-  lab <- toupper(df$method)
+  lab <- .ssb_se_label(df$method)
   df$method <- factor(lab, levels = rev(lab))
 
   ggplot2::ggplot(df, ggplot2::aes(y = .data$method, x = .data$estimate)) +
@@ -102,7 +102,7 @@ ssb_plot_se <- function(x, title = NULL, ...) {
                             height = 0.18, colour = "#2C6FBB", linewidth = 0.6) +
     ggplot2::geom_point(size = 2.4, colour = "#1B3A5B") +
     ggplot2::expand_limits(x = 0) +      # always show the null so significance is legible
-    ggplot2::labs(x = sprintf("Estimate (%.0f%% CI); vertical line at 0", 100 * lev),
+    ggplot2::labs(x = sprintf("Estimate (%.0f%% CI)", 100 * lev),
                   y = NULL,
                   title = title %||% "Standard-error comparison") +
     .ssb_theme()

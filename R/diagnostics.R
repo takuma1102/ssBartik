@@ -67,6 +67,7 @@ ssb_loo <- function(design, top = 5) {
   })
   out <- do.call(rbind, res)
   attr(out, "beta_hat") <- bh
+  class(out) <- c("ssb_loo", "data.frame")
   out
 }
 

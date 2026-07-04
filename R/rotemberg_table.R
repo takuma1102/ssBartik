@@ -141,7 +141,7 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
 
   cw    <- vapply(seq_len(ncol), function(j)
     max(nchar(head_plain[j]), max(nchar(cells[[j]]), 1L)), integer(1))
-  wrel  <- cw + 3L; wfrac <- wrel / sum(wrel)
+  wrel  <- cw + 2L; wfrac <- wrel / sum(wrel)  # column gap (normal table)
   xr <- cumsum(wfrac); xl <- xr - wfrac
 
   fbh <- .ssb_rot_fmt(d$beta_hat, digits)
@@ -191,7 +191,7 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
   head_plain <- c("Sector", "alpha_n", "beta_n", "First-stage F", "g_n")
   cells <- list(d$sector, d$alpha, d$beta, d$F, d$g)
   cw <- vapply(seq_along(cells), function(j)
-    max(nchar(head_plain[j]), max(nchar(cells[[j]]), 1L)) + 3L, integer(1))
+    max(nchar(head_plain[j]), max(nchar(cells[[j]]), 1L)) + 2L, integer(1))
   if (is.null(width))  width  <- max(5.5, 0.092 * sum(cw) + 1)
   if (is.null(height)) height <- .ssb_rot_layout(d$n)$content_h + 0.22
 

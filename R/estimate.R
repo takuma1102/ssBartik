@@ -132,11 +132,107 @@ ssb_estimate <- function(design,
 }
 
 #' @export
-print.ssb_estimate <- function(x, ...) {
+print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
+                               digits = 3, caption = NULL,
+                               label = "tab:ssb-estimate", ...) {
+  format <- match.arg(format)
+  if (format != "console") {
+    cat(.ssb_est_text(x, output = format, digits = digits,
+                      caption = caption, label = label), sep = "\n")
+    return(invisible(x))
+  }
   cat("<ssBartik estimate>\n")
   cat(sprintf("  first-stage F : %.1f\n", attr(x, "fstat")))
   tab <- x[c("method", "estimate", "std.error", "conf.low", "conf.high", "note")]
-  tab$method <- toupper(tab$method)
+  tab$method <- .ssb_se_label(tab$method)
+  class(tab) <- "data.frame"           # avoid dispatching to format.ssb_estimate
   print(format(tab, digits = 3), row.names = FALSE)
   invisible(x)
+}
+
+
+## Display labels + paste-ready estimate table --------------------------------
+
+# Display labels for SE methods: acronyms stay upper-case, words are capitalized
+# on the first letter only (Cluster, Two-way).
+.ssb_se_label <- function(m) {
+  map <- c(iid = "IID", ehw = "EHW", cluster = "Clustering SE",
+           twoway = "Two-way SE", akm = "AKM", akm0 = "AKM0")
+  out <- unname(map[m])
+  ifelse(is.na(out), vapply(m, .ssb_ucfirst, character(1)), out)
+}
+
+# Build the paste-ready estimate table (shared by format() and print()).
+.ssb_est_text <- function(x, output = c("latex", "markdown"),
+                          digits = 3, caption = NULL, label = "tab:ssb-estimate") {
+  output <- match.arg(output)
+  d   <- x[!is.na(x$std.error), , drop = FALSE]
+  lev <- attr(x, "level") %||% 0.95
+  fst <- attr(x, "fstat")
+  num <- function(v) {
+    if (is.na(v)) return("")
+    if (is.infinite(v))
+      return(if (output == "latex") (if (v > 0) "$\\infty$" else "$-\\infty$")
+             else (if (v > 0) "Inf" else "-Inf"))
+    formatC(v, format = "f", digits = digits)
+  }
+  ci <- function(lo, hi) {
+    l <- num(lo); h <- num(hi)
+    if (l == "" && h == "") "" else sprintf("[%s, %s]", l, h)
+  }
+  meth <- .ssb_se_label(d$method)
+  est  <- vapply(d$estimate,  num, character(1))
+  se   <- vapply(d$std.error, num, character(1))
+  cis  <- mapply(ci, d$conf.low, d$conf.high)
+
+  if (output == "markdown") {
+    hdr  <- c("Method", "Estimate", "Std. error", sprintf("%.0f%% CI", 100 * lev))
+    algn <- c(":--", "--:", "--:", "--:")
+    rows <- sprintf("| %s | %s | %s | %s |", meth, est, se, cis)
+    note <- if (is.null(fst) || is.na(fst)) character(0)
+            else sprintf("*First-stage F = %.1f.*", fst)
+    c(paste0("| ", paste(hdr,  collapse = " | "), " |"),
+      paste0("| ", paste(algn, collapse = " | "), " |"),
+      rows, if (length(note)) c("", note))
+  } else {
+    if (is.null(caption))
+      caption <- if (is.null(fst) || is.na(fst))
+        "Shift-share estimate and standard errors."
+      else sprintf(paste0("Shift-share estimate and standard errors ",
+                          "(first-stage $F = %.1f$)."), fst)
+    hdr  <- c("Method", "Estimate", "Std. error", sprintf("%.0f\\%% CI", 100 * lev))
+    rows <- sprintf("%s & %s & %s & %s \\\\", meth, est, se, cis)
+    c("\\begin{table}[!ht]", "\\centering",
+      sprintf("\\caption{%s}", caption),
+      sprintf("\\label{%s}", label),
+      "\\begin{tabular}{lrrr}",
+      "\\toprule",
+      paste0(paste(hdr, collapse = " & "), " \\\\"),
+      "\\midrule",
+      rows,
+      "\\bottomrule",
+      "\\end{tabular}", "\\end{table}")
+  }
+}
+
+#' Render the estimate / standard-error table as LaTeX or Markdown
+#'
+#' Turns an [ssb_estimate()] table into a publication-ready comparison of the
+#' point estimate across standard-error methods. `"latex"` uses \pkg{booktabs}
+#' rules; `"markdown"` emits a GitHub pipe table. Rows whose standard error is
+#' unavailable are dropped. Mirrors [format.ssb_rotemberg()].
+#'
+#' @param x An [ssb_estimate()] object.
+#' @param output `"latex"` (booktabs) or `"markdown"` (pipe table).
+#' @param digits Decimal places for the estimate, SE and interval.
+#' @param caption,label Table caption and cross-reference label (LaTeX only).
+#' @param ... Unused.
+#' @return A character vector of the table lines (paste-ready); pass to
+#'   `writeLines()`.
+#' @export
+format.ssb_estimate <- function(x, output = c("latex", "markdown"),
+                                digits = 3, caption = NULL,
+                                label = "tab:ssb-estimate", ...) {
+  .ssb_est_text(x, output = match.arg(output), digits = digits,
+                caption = caption, label = label)
 }

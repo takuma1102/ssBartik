@@ -240,7 +240,7 @@ print.ssb_ri <- function(x, ...) {
 print.ssb_drop_top <- function(x, ...) {
   cat(sprintf("<ssBartik drop-top-%d>\n", x$n))
   cat("  dropped:", paste(utils::head(x$dropped, 8), collapse = ", "), "\n")
-  cmp <- data.frame(method = toupper(x$full$method),
+  cmp <- data.frame(method = .ssb_se_label(x$full$method),
                     full = x$full$estimate, reduced = x$reduced$estimate)
   print(format(cmp, digits = 3), row.names = FALSE)
   invisible(x)
