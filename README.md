@@ -50,6 +50,37 @@ ssb_plot_rotemberg(rot)
 ssb_plot_se(est)
 ```
 
+## Diagnostics at a glance
+
+With a design in hand, each credibility check is a single call. You supply the
+pre-period / placebo outcomes and the shock-level characteristics; everything
+else follows from the design.
+
+```r
+d <- ssb_design(df$data, df$shares, df$shocks,
+                controls = "w1", weights = "pop", exogenous = "shift")
+
+# instrument strength & internal consistency
+ssb_first_stage(d)               # standard robust F + exposure-robust "effective" F
+ssb_equivalence(d)               # location-level SSIV == shock-level IV (sanity check)
+ssb_overid(d)                    # do the per-share estimates agree? (Cochran's Q)
+
+# identifying-assumption checks
+ssb_shock_balance(d, shock_covariates = sc)  # shocks vs. pre-determined characteristics
+ssb_pretrend(d, pre_y = "y_pre")             # does exposure predict pre-trends?
+ssb_placebo(d, placebo_y = "y_plac")         # full IV on an outcome that shouldn't move
+ssb_ri(d, R = 999, block = "region")         # randomization inference (placebo shocks)
+
+# sensitivity to influential shocks
+ssb_weight_summary(d, covariates = "w1")     # who carries the weight? (α vs. βₖ, F, covariates)
+ssb_drop_top(d, n = 5)                        # re-estimate without the top-weight shocks
+ssb_recenter(d, method = "permute", block = "region")  # block-wise recentering
+```
+
+Each returns a small object with a readable `print()` method; the same checks
+run automatically inside `ssbartik()` / `ssb_pipeline()` when you pass the
+corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`).
+
 ## The two routes
 
 The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
@@ -59,11 +90,12 @@ apply:
 | step | `exogenous = "share"` (e.g., GPSS 2020) | `exogenous = "shift"` (e.g., BHJ 2022) |
 |------|-----------------------------------|----------------------------------|
 | headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
-| credibility check   | share balance vs. observables | shock balance (hook) |
-| robustness          | leave-one-sector-out | leave-one-sector-out |
-| pre-period          | pre-trend check | pre-trend check |
+| credibility check   | share balance vs. observables | shock balance vs. characteristics |
+| cross-instrument    | overidentification across β_k | location ↔ shock IV equivalence |
+| pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
+| robustness          | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
 | extra control       | — | sum-of-shares (auto, when incomplete) |
-| inference           | EHW / cluster / AKM / AKM0 | EHW / cluster / AKM / AKM0 |
+| inference           | EHW / cluster / two-way / AKM / AKM0 | EHW / cluster / two-way / AKM / AKM0 |
 
 ## The headline figure
 
@@ -87,17 +119,49 @@ not.)
 
 ## Function map
 
+**Construct**
+
 | function | purpose |
 |----------|---------|
-| `ssb_design()` / `ssbartik()` | define a design / one-call pipeline |
+| `ssb_design()` | define a shift-share design (entry point) |
+| `ssbartik()` / `ssb_pipeline()` | one-call pipeline (from raw data / from an existing design) |
+
+**Diagnose**
+
+| function | purpose |
+|----------|---------|
 | `ssb_rotemberg()` | Rotemberg-weight decomposition |
-| `ssb_estimate()` | point estimate + naive/EHW/cluster/AKM/AKM0 SEs |
+| `ssb_weight_summary()` | Rotemberg-weight summary + correlations (α vs. βₖ, F, covariates) |
 | `ssb_shock_summary()` | effective number of shocks, exposure concentration |
-| `ssb_loo()` | leave-one-sector-out sensitivity |
+| `ssb_first_stage()` | first-stage strength: standard & exposure-robust (effective) F |
+
+**Estimate & infer**
+
+| function | purpose |
+|----------|---------|
+| `ssb_estimate()` | point estimate + naive/EHW/cluster/two-way/AKM/AKM0 SEs |
+| `ssb_aggregate()` / `ssb_shock_iv()` | shock-level aggregation and shock-level IV |
+| `ssb_equivalence()` | location-level ↔ shock-level IV equivalence check |
+
+**Credibility & robustness checks**
+
+| function | purpose |
+|----------|---------|
+| `ssb_overid()` | overidentification / cross-instrument homogeneity test |
 | `ssb_share_balance()` | share-vs-observables balance (share route) |
-| `ssb_recenter()` | recentering (Borusyak & Hull) |
-| `ssb_pretrend()`, `ssb_shock_balance()` | pre-trend / shock-balance (v0.1 hooks) |
-| `ssb_plot_rotemberg()`, `ssb_plot_se()` | figures |
+| `ssb_shock_balance()` | shock-vs-characteristics balance (shift route) |
+| `ssb_pretrend()` | pre-trend test (reduced form of a pre-period outcome on the instrument) |
+| `ssb_placebo()` | placebo-outcome test (full IV on an outcome that should not move) |
+| `ssb_ri()` | randomization inference (placebo shocks) |
+| `ssb_loo()` | leave-one-sector-out sensitivity |
+| `ssb_drop_top()` | re-estimate after dropping the top-weight shocks together |
+| `ssb_recenter()` | recentering — demean or block-wise permute (Borusyak & Hull) |
+
+**Visualize**
+
+| function | purpose |
+|----------|---------|
+| `ssb_plot_rotemberg()` / `ssb_plot_se()` / `autoplot()` | figures |
 
 ## Status
 
