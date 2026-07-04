@@ -3,6 +3,8 @@
 S3method(autoplot,ssb_estimate)
 S3method(autoplot,ssb_result)
 S3method(autoplot,ssb_rotemberg)
+S3method(format,ssb_rotemberg)
+S3method(plot,ssb_rotemberg)
 S3method(print,ssb_aggregate)
 S3method(print,ssb_design)
 S3method(print,ssb_drop_top)

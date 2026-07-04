@@ -117,6 +117,28 @@ not.)
 
 ![SE comparison](man/figures/README-se.png)
 
+## Paper-ready tables
+
+The Rotemberg decomposition is the headline credibility table of the
+exogenous-shares approach (Goldsmith-Pinkham, Sorkin & Swift 2020): it shows
+which shocks the estimate leans on and whether their just-identified estimates
+agree. `ssb_rotemberg()` prints a console summary by default, and exports a
+publication-quality table of the top-weight shocks on demand:
+
+```r
+rot <- ssb_rotemberg(d)
+print(rot)                                 # console summary (default)
+
+writeLines(format(rot, "latex"))           # paste-ready booktabs LaTeX
+writeLines(format(rot, "markdown"))        # GitHub pipe table
+print(rot, format = "latex", n = 8)        # same, straight from print()
+
+plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf)
+```
+
+The `"latex"` output uses booktabs rules and math-mode headers; `plot()` renders
+the same table as a tight, normal-spacing paper figure.
+
 ## Function map
 
 **Construct**
@@ -130,7 +152,7 @@ not.)
 
 | function | purpose |
 |----------|---------|
-| `ssb_rotemberg()` | Rotemberg-weight decomposition |
+| `ssb_rotemberg()` | Rotemberg-weight decomposition (+ `format()`/`plot()` paper table) |
 | `ssb_weight_summary()` | Rotemberg-weight summary + correlations (α vs. βₖ, F, covariates) |
 | `ssb_shock_summary()` | effective number of shocks, exposure concentration |
 | `ssb_first_stage()` | first-stage strength: standard & exposure-robust (effective) F |

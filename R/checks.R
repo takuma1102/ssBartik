@@ -199,7 +199,9 @@ ssb_weight_summary <- function(design, covariates = NULL, top = 5) {
                       numeric(1))
     names(cov_cor) <- covariates
   }
-  structure(list(top = utils::head(rot[c("sector", "alpha", "beta", "F", "g")], top),
+  top_tab <- utils::head(rot[c("sector", "alpha", "beta", "F", "g")], top)
+  class(top_tab) <- "data.frame"       # plain df: don't dispatch to format.ssb_rotemberg
+  structure(list(top = top_tab,
                  max_alpha = rot$alpha[1], max_sector = rot$sector[1],
                  cor = cors, cov_cor = cov_cor), class = "ssb_weight_summary")
 }

@@ -62,7 +62,16 @@ ssb_rotemberg <- function(design) {
 }
 
 #' @export
-print.ssb_rotemberg <- function(x, n = 6, ...) {
+print.ssb_rotemberg <- function(x, n = 6,
+                                format = c("console", "latex", "markdown"),
+                                digits = 3, caption = NULL,
+                                label = "tab:rotemberg", ...) {
+  format <- match.arg(format)
+  if (format != "console") {
+    cat(.ssb_rot_text(x, output = format, n = n, digits = digits,
+                      caption = caption, label = label), sep = "\n")
+    return(invisible(x))
+  }
   bh <- attr(x, "beta_hat")
   pos <- sum(x$alpha[x$alpha > 0]); neg <- sum(x$alpha[x$alpha < 0])
   cat("<ssBartik Rotemberg weights>\n")
@@ -74,9 +83,9 @@ print.ssb_rotemberg <- function(x, n = 6, ...) {
     cat(sprintf("  ! one shock carries |alpha| = %.2f; check robustness via ssb_drop_top()\n",
                 abs(x$alpha[j])))
   cat(sprintf("  top %d sectors by |alpha|:\n", min(n, nrow(x))))
-  show <- utils::head(x, n)
-  print(format(show[c("sector", "alpha", "beta", "F")], digits = 3),
-        row.names = FALSE)
+  show <- utils::head(x, n)[c("sector", "alpha", "beta", "F")]
+  class(show) <- "data.frame"          # avoid dispatching to format.ssb_rotemberg
+  print(format(show, digits = 3), row.names = FALSE)
   cat("  (negative weights are not by themselves a red flag; see GPSS 2020)\n")
   invisible(x)
 }

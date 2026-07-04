@@ -17,6 +17,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:
     ggplot2,
+    grDevices,
+    grid,
     stats,
     utils
 Suggests:
