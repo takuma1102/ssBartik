@@ -15,7 +15,7 @@ argument (`exogenous = "share"` or `"shift"`), everything downstream follows fro
 
 ## Headline visualizations and tables
 
-`ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below illustrate some of the package's main outputs.
+`ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below demonstrate some of the package’s main outputs using sample datasets with either exogenous shares or exogenous shocks.
 
 <img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
 *This figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
