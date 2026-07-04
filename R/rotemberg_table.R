@@ -6,6 +6,13 @@
 # Format a numeric vector to a fixed number of decimals.
 .ssb_rot_fmt <- function(v, digits) formatC(v, format = "f", digits = digits)
 
+# Capitalize the first character. Every table subtitle this package draws must
+# begin with an uppercase character; route subtitles through this to enforce it.
+.ssb_ucfirst <- function(s) {
+  if (length(s) != 1L || is.na(s) || !nzchar(s)) return(s)
+  paste0(toupper(substr(s, 1L, 1L)), substr(s, 2L, nchar(s)))
+}
+
 # Escape LaTeX-special characters in a label.
 .ssb_tex_escape <- function(s) {
   s <- gsub("\\\\", "\\\\textbackslash{}", s)
@@ -139,7 +146,8 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
 
   fbh <- .ssb_rot_fmt(d$beta_hat, digits)
   title <- "Rotemberg-weight diagnostic"
-  sub   <- sprintf("top %d shocks by |alpha|   (overall beta-hat = %s)", nb, fbh)
+  sub   <- .ssb_ucfirst(
+    sprintf("top %d shocks by |alpha|   (overall beta-hat = %s)", nb, fbh))
 
   c_rule <- "#222222"; c_text <- "#111111"; c_sub <- "#555555"; ff <- "serif"
   lay <- .ssb_rot_layout(nb)
