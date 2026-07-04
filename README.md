@@ -87,7 +87,7 @@ The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
 route you take. The `exogenous` flag governs which diagnostics and controls
 apply:
 
-| step | `exogenous = "share"` (e.g., GPSS 2020) | `exogenous = "shift"` (e.g., BHJ 2022) |
+| step | `exogenous = "share"` (GPSS 2020) | `exogenous = "shift"` (AKM 2019; BHJ 2022) |
 |------|-----------------------------------|----------------------------------|
 | headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
 | credibility check   | share balance vs. observables | shock balance vs. characteristics |
