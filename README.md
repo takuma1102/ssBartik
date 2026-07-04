@@ -105,7 +105,7 @@ F-statistic, bubble area proportional to the absolute Rotemberg weight, positive
 weights as blue open circles and negative as amber open diamonds, with the
 overall estimate marked by the dashed line.
 
-![Rotemberg weights](man/figures/README-rotemberg.png)
+<img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
 
 *The design of this figure is intended to follow the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin & Swift (2020).*
 
@@ -115,7 +115,7 @@ exposure-robust correction *and* each method's verdict on significance are
 immediate. (In this example the naive/EHW interval excludes 0 while AKM0 does
 not.)
 
-![SE comparison](man/figures/README-se.png)
+<img src="man/figures/README-se.png" alt="SE comparison" />
 
 ## Paper-ready tables
 
@@ -133,8 +133,10 @@ writeLines(format(rot, "latex"))           # paste-ready booktabs LaTeX
 writeLines(format(rot, "markdown"))        # GitHub pipe table
 print(rot, format = "latex", n = 8)        # same, straight from print()
 
-plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf)
+plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf); see below
 ```
+
+<img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
 
 The `"latex"` output uses booktabs rules and math-mode headers; `plot()` renders
 the same table as a tight, normal-spacing paper figure.
