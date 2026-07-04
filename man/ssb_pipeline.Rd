@@ -4,7 +4,15 @@
 \alias{ssb_pipeline}
 \title{Run the full shift-share analysis pipeline}
 \usage{
-ssb_pipeline(design, covariates = NULL, pre_y = NULL, top = 5, level = 0.95)
+ssb_pipeline(
+  design,
+  covariates = NULL,
+  pre_y = NULL,
+  placebo_y = NULL,
+  shock_covariates = NULL,
+  top = 5,
+  level = 0.95
+)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
@@ -12,7 +20,12 @@ ssb_pipeline(design, covariates = NULL, pre_y = NULL, top = 5, level = 0.95)
 \item{covariates}{Optional observables for the share-balance check (share
 route).}
 
-\item{pre_y}{Optional pre-period outcome for the pre-trend check.}
+\item{pre_y}{Optional pre-period outcome for [ssb_pretrend()].}
+
+\item{placebo_y}{Optional placebo outcome for [ssb_placebo()].}
+
+\item{shock_covariates}{Optional shock-level characteristics (a data.frame
+keyed by sector) for [ssb_shock_balance()] on the shift route.}
 
 \item{top}{Number of top-weight sectors for the sensitivity diagnostics.}
 

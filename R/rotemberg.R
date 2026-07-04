@@ -56,6 +56,7 @@ ssb_rotemberg <- function(design) {
   out <- out[order(-abs(out$alpha)), , drop = FALSE]
   rownames(out) <- NULL
   attr(out, "beta_hat") <- beta_hat
+  attr(out, "max_alpha") <- out$alpha[which.max(abs(out$alpha))]
   class(out) <- c("ssb_rotemberg", "data.frame")
   out
 }
@@ -67,6 +68,11 @@ print.ssb_rotemberg <- function(x, n = 6, ...) {
   cat("<ssBartik Rotemberg weights>\n")
   cat(sprintf("  overall beta_hat : %.4f\n", bh))
   cat(sprintf("  sum positive alpha : %.3f   sum negative alpha : %.3f\n", pos, neg))
+  j <- which.max(abs(x$alpha))
+  cat(sprintf("  largest weight   : alpha = %.3f (%s)\n", x$alpha[j], x$sector[j]))
+  if (abs(x$alpha[j]) > 0.2)
+    cat(sprintf("  ! one shock carries |alpha| = %.2f; check robustness via ssb_drop_top()\n",
+                abs(x$alpha[j])))
   cat(sprintf("  top %d sectors by |alpha|:\n", min(n, nrow(x))))
   show <- utils::head(x, n)
   print(format(show[c("sector", "alpha", "beta", "F")], digits = 3),

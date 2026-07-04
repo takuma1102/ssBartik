@@ -4,29 +4,36 @@
 \alias{ssb_recenter}
 \title{Recenter the shocks (Borusyak & Hull)}
 \usage{
-ssb_recenter(design, method = c("demean", "permute"), ...)
+ssb_recenter(design, method = c("demean", "permute"), block = NULL, ...)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
-\item{method}{`"demean"` (implemented) or `"permute"` (stub).}
+\item{method}{`"demean"` or `"permute"`.}
+
+\item{block}{Exchangeability blocks for `"permute"`: a column name in the
+shocks table, or a vector of length equal to the number of shock-cells.}
 
 \item{...}{Reserved.}
 }
 \value{
-A new [ssb_design()] with recentered shocks/instrument.
+A new [ssb_design()] with recentered shocks/instrument (carries a
+  `"recentered"` attribute).
 }
 \description{
-Recentering guards against non-random exposure by subtracting the expected
-instrument implied by a shock-assignment model. v0.1 ships the simplest
-defensible version, `method = "demean"`: subtract the exposure-weighted mean
-shock \eqn{\bar g} from every shock. This is the GPSS "Remark 1.1"
-normalisation --- it leaves the point estimate unchanged but makes the
-identifying variation (deviations of shocks from their mean) explicit and is
-a prerequisite for honest recentering.
+Recentering removes the expected instrument implied by the shock-assignment
+process, so identification comes only from deviations of shocks from their
+(conditional) mean. Two methods:
+\itemize{
+  \item `"demean"` (default): subtract the single exposure-weighted mean shock
+        \eqn{\bar g}. Leaves the point estimate unchanged but makes the
+        identifying variation explicit.
+  \item `"permute"`: subtract a *block-specific* exposure-weighted mean shock,
+        i.e. recenter within exchangeability groups. This is the expectation
+        of the instrument under within-block permutations of the shocks
+        (Borusyak & Hull), computed analytically. With no `block` it reduces
+        to `"demean"`.
 }
-\details{
-A full permutation/reassignment recentering (`method = "permute"`, drawing
-counterfactual shock assignments to estimate \eqn{E[z_i]}) is stubbed: it
-requires the user's real assignment process and will land in a later version.
+For randomization-inference p-values based on the same permutation idea, see
+[ssb_ri()].
 }

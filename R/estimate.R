@@ -9,14 +9,18 @@
 #'   \item `ehw` --- Eicker-Huber-White (heteroskedasticity-robust),
 #'   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
 #'   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust SE / CI,
-#'         via \pkg{ShiftShareSE} when installed.
+#'         via \pkg{ShiftShareSE} when installed,
+#'   \item `twoway` --- two-way cluster-robust (needs `cluster` in the design
+#'         and `cluster2` here).
 #' }
 #' The point estimate is identical across rows; only the standard errors and
 #' intervals differ, which is exactly what makes the comparison instructive.
 #'
 #' @param design An [ssb_design()] object.
-#' @param methods Which SEs to report.
+#' @param methods Which SEs to report (add `"twoway"` for two-way clustering).
 #' @param level Confidence level for the reported intervals.
+#' @param cluster2 Optional second clustering column in `data` for the
+#'   `"twoway"` method (paired with the design's `cluster`).
 #'
 #' @return A `data.frame` of class `ssb_estimate` with one row per method
 #'   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
@@ -25,12 +29,13 @@
 ssb_estimate <- function(design,
                          methods = c("iid", "ehw", "cluster",
                                      "akm", "akm0"),
-                         level = 0.95) {
+                         level = 0.95, cluster2 = NULL) {
   stopifnot(inherits(design, "ssb_design"))
   methods <- ifelse(methods %in% c("homoskedastic", "homoscedastic"), "iid", methods)
   d <- design
   w <- .ssb_w(d); C <- .ssb_C(d)
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
+  cl2 <- if (is.null(cluster2)) NULL else d$data[[cluster2]]
 
   ry <- .ssb_resid(d$data[[d$vars$y]], C, w)
   rx <- .ssb_resid(d$data[[d$vars$x]], C, w)
@@ -63,6 +68,15 @@ ssb_estimate <- function(design,
     } else if (mth == "cluster") {
       rows[[mth]] <- if (is.null(cl)) row_native(mth, NA_real_, "no cluster var")
                      else row_native(mth, se_of(.ssb_cluster_meat(gmom, cl)))
+    } else if (mth == "twoway") {
+      if (is.null(cl) || is.null(cl2)) {
+        rows[[mth]] <- row_native(mth, NA_real_, "needs cluster + cluster2")
+      } else {
+        m1  <- .ssb_cluster_meat(gmom, cl)
+        m2  <- .ssb_cluster_meat(gmom, cl2)
+        m12 <- .ssb_cluster_meat(gmom, interaction(cl, cl2, drop = TRUE))
+        rows[[mth]] <- row_native(mth, sqrt(max((m1 + m2 - m12) / zx^2, 0)))
+      }
     } else if (mth %in% c("akm", "akm0")) {
       rows[[mth]] <- akm_tab[akm_tab$method == mth, , drop = FALSE]
     }

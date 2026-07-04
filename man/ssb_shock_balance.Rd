@@ -2,18 +2,26 @@
 % Please edit documentation in R/diagnostics.R
 \name{ssb_shock_balance}
 \alias{ssb_shock_balance}
-\title{Shock-level balance test (stub)}
+\title{Shock-level balance test}
 \usage{
-ssb_shock_balance(design, shock_covariates = NULL)
+ssb_shock_balance(design, shock_covariates, weight = TRUE)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
-\item{shock_covariates}{Optional `data.frame` keyed by `sector`.}
+\item{shock_covariates}{A `data.frame` keyed by `sector` (and `time` for
+panels) holding the shock-level characteristics to test.}
+
+\item{weight}{If `TRUE` (default) weight by exposure \eqn{s_n}; else unweighted.}
+}
+\value{
+A list (class `ssb_shock_balance`) with a coefficient table and the
+  joint Wald test that the characteristics are unrelated to the shocks.
 }
 \description{
-Intended to regress shock-level covariates (merged at the sector level) on
-the shocks to test the as-good-as-random assignment of shifts. Not yet
-implemented in v0.1 because shock-level covariates are not part of the design
-object; the scaffolding ([ssb_aggregate()] hook) is where this will live.
+Tests the identifying assumption of the shocks route --- that shocks are
+as-good-as-randomly assigned --- by regressing the shocks on pre-determined
+shock-level characteristics, weighted by exposure (Borusyak, Hull & Jaravel
+2022). Coefficients near zero and a non-significant joint test support shock
+exogeneity.
 }

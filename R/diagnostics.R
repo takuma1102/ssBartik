@@ -108,38 +108,105 @@ ssb_share_balance <- function(design, covariates, top = 5) {
   out
 }
 
-#' Pre-trend / placebo check (stub)
+#' Pre-trend test
 #'
-#' Regresses a pre-period outcome on the constructed instrument. Not yet
-#' implemented in v0.1: the design object does not yet carry pre-period
-#' outcomes. Supply them via `pre_y` in a future release, or run the check
-#' manually by building an [ssb_design()] with the pre-period outcome as `y`.
+#' Reduced-form regression of a pre-period outcome on the constructed instrument
+#' (controls partialled out). A coefficient far from zero indicates that
+#' exposure predicts differential pre-trends --- a threat to identification.
+#' This is distinct from [ssb_placebo()], which runs the *full IV* on a placebo
+#' outcome; pre-trends ask whether exposure predicts the outcome *before* the
+#' shocks, placebo asks whether the design moves an outcome it should not.
 #'
 #' @param design An [ssb_design()] object.
-#' @param pre_y Optional pre-period outcome column in `data`.
+#' @param pre_y Column name of the pre-period outcome (or pre-period change).
+#' @param level Confidence level.
+#' @return A list (class `ssb_pretrend`) with the reduced-form coefficient and
+#'   EHW / cluster standard errors.
 #' @export
-ssb_pretrend <- function(design, pre_y = NULL) {
-  if (is.null(pre_y)) {
-    message("ssb_pretrend(): supply `pre_y`, or rebuild the design with the ",
-            "pre-period outcome as `y` and call ssb_estimate(). (stub in v0.1)")
-    return(invisible(NULL))
-  }
-  d2 <- design; d2$vars$y <- pre_y
-  ssb_estimate(d2, methods = c("ehw", "cluster"))
+ssb_pretrend <- function(design, pre_y, level = 0.95) {
+  stopifnot(inherits(design, "ssb_design"))
+  if (missing(pre_y) || is.null(pre_y) || !pre_y %in% names(design$data))
+    stop("supply `pre_y`, a pre-period outcome column in the data.")
+  d <- design; w <- .ssb_w(d); C <- .ssb_C(d)
+  rp <- .ssb_resid(d$data[[pre_y]], C, w)
+  rz <- .ssb_resid(d$mat$z, C, w)
+  zz <- .ssb_wip(rz, rz, w)
+  b  <- .ssb_wip(rz, rp, w) / zz
+  e  <- rp - b * rz
+  gmom <- w * rz * e
+  n <- length(rp)
+  se_ehw <- sqrt(sum(gmom^2) * n / max(n - 1, 1)) / zz
+  cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
+  se_cl <- if (is.null(cl)) NA_real_ else sqrt(.ssb_cluster_meat(gmom, cl)) / zz
+  q <- stats::qnorm(1 - (1 - level) / 2)
+  structure(list(coef = b, se_ehw = se_ehw, se_cluster = se_cl,
+                 p_ehw = 2 * stats::pnorm(-abs(b / se_ehw)),
+                 conf.low = b - q * se_ehw, conf.high = b + q * se_ehw,
+                 pre_y = pre_y), class = "ssb_pretrend")
 }
 
-#' Shock-level balance test (stub)
+#' @export
+print.ssb_pretrend <- function(x, ...) {
+  cat("<ssBartik pre-trend test (reduced form on instrument)>\n")
+  cat(sprintf("  pre-period outcome : %s\n", x$pre_y))
+  cat(sprintf("  coef %.4f   se(EHW) %.4f   se(cluster) %s   p(EHW) %.3f\n",
+              x$coef, x$se_ehw,
+              if (is.na(x$se_cluster)) "NA" else sprintf("%.4f", x$se_cluster),
+              x$p_ehw))
+  cat("  coefficient near 0 => no differential pre-trend by exposure\n")
+  invisible(x)
+}
+
+#' Shock-level balance test
 #'
-#' Intended to regress shock-level covariates (merged at the sector level) on
-#' the shocks to test the as-good-as-random assignment of shifts. Not yet
-#' implemented in v0.1 because shock-level covariates are not part of the design
-#' object; the scaffolding ([ssb_aggregate()] hook) is where this will live.
+#' Tests the identifying assumption of the shocks route --- that shocks are
+#' as-good-as-randomly assigned --- by regressing the shocks on pre-determined
+#' shock-level characteristics, weighted by exposure (Borusyak, Hull & Jaravel
+#' 2022). Coefficients near zero and a non-significant joint test support shock
+#' exogeneity.
 #'
 #' @param design An [ssb_design()] object.
-#' @param shock_covariates Optional `data.frame` keyed by `sector`.
+#' @param shock_covariates A `data.frame` keyed by `sector` (and `time` for
+#'   panels) holding the shock-level characteristics to test.
+#' @param weight If `TRUE` (default) weight by exposure \eqn{s_n}; else unweighted.
+#' @return A list (class `ssb_shock_balance`) with a coefficient table and the
+#'   joint Wald test that the characteristics are unrelated to the shocks.
 #' @export
-ssb_shock_balance <- function(design, shock_covariates = NULL) {
-  message("ssb_shock_balance(): not yet implemented in v0.1 (needs shock-level ",
-          "covariates keyed by sector).")
-  invisible(NULL)
+ssb_shock_balance <- function(design, shock_covariates, weight = TRUE) {
+  stopifnot(inherits(design, "ssb_design"))
+  v <- design$vars; sh <- design$shocks
+  keys <- if (is.null(v$time)) v$sector else c(v$sector, v$time)
+  miss <- setdiff(keys, names(shock_covariates))
+  if (length(miss)) stop("`shock_covariates` must contain: ",
+                         paste(keys, collapse = ", "))
+  covs <- setdiff(names(shock_covariates), c(keys, "shock"))
+  if (!length(covs)) stop("no covariate columns found in `shock_covariates`.")
+
+  key_of <- function(df) if (is.null(v$time)) as.character(df[[v$sector]])
+                         else paste(df[[v$sector]], df[[v$time]], sep = "\r")
+  idx <- match(key_of(sh), key_of(shock_covariates))
+  X   <- as.matrix(shock_covariates[idx, covs, drop = FALSE])
+  g   <- sh$shock
+  wts <- if (weight) .ssb_exposure(design) else rep(1, length(g))
+
+  fit <- .ssb_wls(g, cbind(1, X), wts)
+  tab <- data.frame(covariate = covs, coef = fit$coef[-1], se = fit$se[-1],
+                    t = fit$tstat[-1], p = 2 * stats::pnorm(-abs(fit$tstat[-1])),
+                    stringsAsFactors = FALSE)
+  rownames(tab) <- NULL
+  structure(list(coefficients = tab, joint_wald = fit$wald,
+                 joint_df = fit$wald_df, joint_p = fit$wald_p,
+                 weighted = weight), class = "ssb_shock_balance")
+}
+
+#' @export
+print.ssb_shock_balance <- function(x, ...) {
+  cat("<ssBartik shock-level balance test>\n")
+  cat(sprintf("  %s regression of shocks on characteristics\n",
+              if (x$weighted) "exposure-weighted" else "unweighted"))
+  print(format(x$coefficients, digits = 3), row.names = FALSE)
+  cat(sprintf("  joint Wald = %.2f on %d df, p = %.4f\n",
+              x$joint_wald, x$joint_df, x$joint_p))
+  cat("  non-significant => shocks unrelated to observed characteristics\n")
+  invisible(x)
 }

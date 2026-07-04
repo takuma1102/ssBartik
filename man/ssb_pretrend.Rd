@@ -2,18 +2,26 @@
 % Please edit documentation in R/diagnostics.R
 \name{ssb_pretrend}
 \alias{ssb_pretrend}
-\title{Pre-trend / placebo check (stub)}
+\title{Pre-trend test}
 \usage{
-ssb_pretrend(design, pre_y = NULL)
+ssb_pretrend(design, pre_y, level = 0.95)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
-\item{pre_y}{Optional pre-period outcome column in `data`.}
+\item{pre_y}{Column name of the pre-period outcome (or pre-period change).}
+
+\item{level}{Confidence level.}
+}
+\value{
+A list (class `ssb_pretrend`) with the reduced-form coefficient and
+  EHW / cluster standard errors.
 }
 \description{
-Regresses a pre-period outcome on the constructed instrument. Not yet
-implemented in v0.1: the design object does not yet carry pre-period
-outcomes. Supply them via `pre_y` in a future release, or run the check
-manually by building an [ssb_design()] with the pre-period outcome as `y`.
+Reduced-form regression of a pre-period outcome on the constructed instrument
+(controls partialled out). A coefficient far from zero indicates that
+exposure predicts differential pre-trends --- a threat to identification.
+This is distinct from [ssb_placebo()], which runs the *full IV* on a placebo
+outcome; pre-trends ask whether exposure predicts the outcome *before* the
+shocks, placebo asks whether the design moves an outcome it should not.
 }

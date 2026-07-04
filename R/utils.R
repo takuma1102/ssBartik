@@ -42,3 +42,50 @@ NULL
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
+
+# Weighted LS with (cluster-)robust vcov and a joint Wald test on the
+# non-intercept coefficients. `X` must already include the intercept column.
+.ssb_wls <- function(y, X, w, cluster = NULL, intercept_col = 1L) {
+  X <- as.matrix(X)
+  XtWXi <- solve(crossprod(X, w * X))
+  b  <- as.numeric(XtWXi %*% crossprod(X, w * y))
+  e  <- as.numeric(y - X %*% b)
+  n  <- nrow(X); k <- ncol(X)
+  if (is.null(cluster)) {
+    meat <- crossprod(X, (w^2 * e^2) * X)
+    adj  <- n / max(n - k, 1)
+  } else {
+    Ug   <- rowsum(X * (w * e), group = cluster)
+    meat <- crossprod(Ug)
+    G    <- nrow(Ug)
+    adj  <- (G / max(G - 1, 1)) * ((n - 1) / max(n - k, 1))
+  }
+  V   <- XtWXi %*% meat %*% XtWXi * adj
+  se  <- sqrt(diag(V))
+  sel <- setdiff(seq_len(k), intercept_col)
+  wald <- NA_real_; q <- length(sel); pW <- NA_real_
+  if (q > 0) {
+    bb <- b[sel]; Vv <- V[sel, sel, drop = FALSE]
+    wald <- as.numeric(t(bb) %*% solve(Vv) %*% bb)
+    pW   <- stats::pchisq(wald, q, lower.tail = FALSE)
+  }
+  list(coef = b, se = se, tstat = b / se, vcov = V,
+       wald = wald, wald_df = q, wald_p = pW, resid = e)
+}
+
+# Return a copy of a design restricted to a subset of sector-cells (logical or
+# integer `keep`), recomputing the instrument, share sums and completeness.
+.ssb_subset <- function(design, keep) {
+  d <- design
+  S <- d$mat$S[, keep, drop = FALSE]; g <- d$mat$g[keep]
+  d$mat$S <- S; d$mat$g <- g
+  d$mat$z <- as.numeric(S %*% g)
+  d$mat$share_sum <- rowSums(S)
+  d$mat$cell_sector <- d$mat$cell_sector[keep]
+  d$mat$complete <- isTRUE(all.equal(unname(d$mat$share_sum),
+                                     rep(1, nrow(S)), tolerance = 1e-6))
+  d
+}
+
+# exposure weight per shock-cell: s_n = sum_i w_i s_{in}
+.ssb_exposure <- function(design) as.numeric(colSums(.ssb_w(design) * design$mat$S))

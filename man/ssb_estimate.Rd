@@ -7,15 +7,19 @@
 ssb_estimate(
   design,
   methods = c("iid", "ehw", "cluster", "akm", "akm0"),
-  level = 0.95
+  level = 0.95,
+  cluster2 = NULL
 )
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
-\item{methods}{Which SEs to report.}
+\item{methods}{Which SEs to report (add `"twoway"` for two-way clustering).}
 
 \item{level}{Confidence level for the reported intervals.}
+
+\item{cluster2}{Optional second clustering column in `data` for the
+`"twoway"` method (paired with the design's `cluster`).}
 }
 \value{
 A `data.frame` of class `ssb_estimate` with one row per method
@@ -32,7 +36,9 @@ of the correction is visible:
   \item `ehw` --- Eicker-Huber-White (heteroskedasticity-robust),
   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust SE / CI,
-        via \pkg{ShiftShareSE} when installed.
+        via \pkg{ShiftShareSE} when installed,
+  \item `twoway` --- two-way cluster-robust (needs `cluster` in the design
+        and `cluster2` here).
 }
 The point estimate is identical across rows; only the standard errors and
 intervals differ, which is exactly what makes the comparison instructive.

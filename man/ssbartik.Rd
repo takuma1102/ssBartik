@@ -19,6 +19,8 @@ ssbartik(
   exogenous = c("shift", "share"),
   covariates = NULL,
   pre_y = NULL,
+  placebo_y = NULL,
+  shock_covariates = NULL,
   top = 5,
   level = 0.95
 )
@@ -52,7 +54,8 @@ location-period). Must contain `y`, `x`, `location`, and any `controls`,
 `"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted
 aliases.}
 
-\item{covariates, pre_y, top, level}{Passed to [ssb_pipeline()].}
+\item{covariates, pre_y, placebo_y, shock_covariates, top, level}{Passed to
+[ssb_pipeline()].}
 }
 \value{
 An `ssb_result` object.
