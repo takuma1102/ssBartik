@@ -1,4 +1,4 @@
-# ssBartik: R package for an end-to-end pipeline for shift-share / Bartik IV designs
+# ssBartik: R package for an end-to-end pipeline for shift-share (Bartik) IV designs
 
 [![R-CMD-check](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -6,14 +6,14 @@
 
 Shift-share / Bartik IV analysis in R is currently spread across several excellent but single-purpose tools, each
 of which has its own data conventions. `ssBartik` connects those steps
-into one consistent workflow: **variable construct → diagnose → estimate → infer →
-visualize**, organized around the two identification routes of the modern
+into one consistent workflow: (a) variable construct → (b) diagnose → (c) estimate → (d) infer →
+(e) visualize, organized around the two identification routes of the modern
 literature (i.e., exogeneous **shift** and exogenous **share** approaches).
 
 Once you pick the identification route with a single
 argument (`exogenous = "share"` or `"shift"`); everything downstream follows from variable construction and iagnostics to visualization.
 
-## Installation
+## Install
 
 ```r
 # install.packages("remotes")
@@ -56,7 +56,7 @@ The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically** whichever
 route you take. The `exogenous` flag governs which diagnostics and controls
 apply:
 
-| step | `exogenous = "share"` (GPSS 2020) | `exogenous = "shift"` (BHJ 2022) |
+| step | `exogenous = "share"` (e.g., GPSS 2020) | `exogenous = "shift"` (e.g., BHJ 2022) |
 |------|-----------------------------------|----------------------------------|
 | headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
 | credibility check   | share balance vs. observables | shock balance (hook) |
@@ -99,17 +99,9 @@ not.)
 | `ssb_pretrend()`, `ssb_shock_balance()` | pre-trend / shock-balance (v0.1 hooks) |
 | `ssb_plot_rotemberg()`, `ssb_plot_se()` | figures |
 
-## Status (v0.1)
+## Status
 
-Working and validated: instrument construction (cross-section and
-sector×period panels), Rotemberg decomposition (weights sum to one; the overall
-estimate matches the 2SLS estimate exactly by FWL), the SE panel (the native
-point estimate matches `ShiftShareSE` to machine precision), shock summary,
-leave-one-out, share balance, and demean-recentering.
-
-Planned next: `.Rd` help pages via roxygen; a native `ssaggregate`-style
-shock-level regression and equivalence check; permutation-based recentering;
-full shock-balance and pre-trend tests carried by the design object.
+Experimental, but the output schema is intended to be stable. Pin package versions in production code.
 
 ## Acknowledgements & references
 
