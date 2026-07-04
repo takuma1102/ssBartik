@@ -93,8 +93,8 @@
 #' @param digits Decimal places for the estimates and weights.
 #' @param caption,label Table caption and cross-reference label (LaTeX only).
 #' @param ... Unused.
-#' @return A character vector of lines (paste-ready). Combine with
-#'   `cat(..., sep = "\n")` or `writeLines()`.
+#' @return A character vector of the table lines (paste-ready); pass to
+#'   `writeLines()`.
 #' @seealso [plot.ssb_rotemberg()] for a rendered image, [ssb_plot_rotemberg()]
 #'   for the bubble figure.
 #' @export

@@ -28,8 +28,8 @@
 \item{...}{Unused.}
 }
 \value{
-A character vector of lines (paste-ready). Combine with
-  `cat(..., sep = "\n")` or `writeLines()`.
+A character vector of the table lines (paste-ready); pass to
+  `writeLines()`.
 }
 \description{
 Turns the [ssb_rotemberg()] decomposition into a publication-quality table of
