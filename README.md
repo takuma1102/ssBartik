@@ -13,12 +13,12 @@ literature (i.e., exogeneous **shift** and exogenous **share** approaches).
 Once you pick the identification route with a single
 argument (`exogenous = "share"` or `"shift"`), everything downstream follows from variable construction to visualization.
 
-## The headline visualization
+## Headline visualizations and tables
 
-This package produces paper-ready plots and tables about analysis results. Below are a few examples.
+`ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below illustrate some of the package's main outputs.
 
 <img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
-*The design of this figure is intended to follow the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin & Swift (2020).*
+*This figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
 
 <img src="man/figures/README-se.png" alt="SE comparison" />
 <img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
