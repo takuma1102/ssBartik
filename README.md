@@ -206,6 +206,7 @@ Please also cite whichever underlying methods and tests you actually used.
 
 - Adão, Kolesár & Morales (2019), *Shift-Share Designs: Theory and Inference*, QJE.
 - Borusyak, Hull & Jaravel (2022), *Quasi-Experimental Shift-Share Research Designs*, REStud.
+- Borusyak and Hull (2026) *Optimal formula instruments*, Econometrica (forthcoming).
 - Borusyak, Hull & Jaravel (2025), *A Practical Guide to Shift-Share Instruments*, Journal of Economic Perspectives.
 - Borusyak, Hull & Jaravel (2025), *Design-based identification with formula instruments: a review*, The Econometrics Journal.
 - Goldsmith-Pinkham, Sorkin & Swift (2020), *Bartik Instruments: What, When, Why, and How*, AER.
