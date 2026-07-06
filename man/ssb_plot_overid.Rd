@@ -4,12 +4,16 @@
 \alias{ssb_plot_overid}
 \title{Overidentification dispersion plot}
 \usage{
-ssb_plot_overid(x, level = 0.95, title = NULL, ...)
+ssb_plot_overid(x, level = 0.95, xlim = NULL, title = NULL, ...)
 }
 \arguments{
 \item{x}{An [ssb_overid()] object.}
 
 \item{level}{Confidence level for the per-instrument intervals.}
+
+\item{xlim}{Optional `c(lo, hi)` for the horizontal axis. By default the axis
+is trimmed to the bulk of the estimates because weak single-share
+instruments have very wide intervals; widen it here to show more of them.}
 
 \item{title}{Optional plot title.}
 

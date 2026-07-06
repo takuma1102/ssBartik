@@ -201,11 +201,14 @@ ssb_plot_ri <- function(x, bins = 30, title = NULL, ...) {
 #'
 #' @param x An [ssb_overid()] object.
 #' @param level Confidence level for the per-instrument intervals.
+#' @param xlim Optional `c(lo, hi)` for the horizontal axis. By default the axis
+#'   is trimmed to the bulk of the estimates because weak single-share
+#'   instruments have very wide intervals; widen it here to show more of them.
 #' @param title Optional plot title.
 #' @param ... Unused.
 #' @return A \pkg{ggplot2} object.
 #' @export
-ssb_plot_overid <- function(x, level = 0.95, title = NULL, ...) {
+ssb_plot_overid <- function(x, level = 0.95, xlim = NULL, title = NULL, ...) {
   stopifnot(inherits(x, "ssb_overid"))
   if (is.null(x$instruments))
     stop("this ssb_overid object predates plotting; re-run ssb_overid().")
@@ -217,11 +220,15 @@ ssb_plot_overid <- function(x, level = 0.95, title = NULL, ...) {
   d$lo <- d$beta - z * d$se; d$hi <- d$beta + z * d$se
   d <- d[order(d$beta), , drop = FALSE]
   d$sector <- factor(d$sector, levels = d$sector)
-  # weak single-share instruments have huge intervals; focus the axis on the bulk
-  # of the estimates (their CIs run off the panel edge).
-  qb  <- stats::quantile(d$beta, c(0.25, 0.75), na.rm = TRUE)
-  pad <- as.numeric(qb[2] - qb[1])
-  rng <- range(c(qb[1] - pad, qb[2] + pad, x$beta_bar))
+  # weak single-share instruments have huge intervals; by DEFAULT the axis is
+  # focused on the bulk of the estimates (their CIs run off the panel edge). Pass
+  # `xlim` to widen it -- e.g. xlim = range(c(d$lo, d$hi)) shows every interval
+  # in full, or give any c(lo, hi) you like.
+  rng <- if (!is.null(xlim)) xlim else {
+    qb  <- stats::quantile(d$beta, c(0.25, 0.75), na.rm = TRUE)
+    pad <- as.numeric(qb[2] - qb[1])
+    range(c(qb[1] - pad, qb[2] + pad, x$beta_bar))
+  }
   ggplot2::ggplot(d, ggplot2::aes(y = .data$sector, x = .data$beta)) +
     ggplot2::geom_vline(xintercept = x$beta_bar, linetype = "dashed",
                         colour = "grey40", linewidth = 0.4) +
