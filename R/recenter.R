@@ -48,7 +48,7 @@ ssb_recenter <- function(design, method = c("demean", "permute"),
   gsub <- as.numeric(gbar[as.character(blk)])
 
   d <- design
-  d$shocks$shock <- d$shocks$shock - gsub
+  d$shocks[[d$vars$shock_col]] <- d$shocks[[d$vars$shock_col]] - gsub
   d <- .ssb_build(d)
   attr(d, "recentered") <- list(method = method, block_means = gbar)
   d

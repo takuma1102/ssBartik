@@ -21,13 +21,14 @@ ssb_overid <- function(design, min_F = 0) {
   rx <- .ssb_resid(d$data[[d$vars$x]], C, w)
   ry <- .ssb_resid(d$data[[d$vars$y]], C, w)
   K <- ncol(S); bk <- vk <- Fk <- numeric(K)
+  kp <- .ssb_np(C) + 1L                   # intercept + controls + share slope
   for (k in seq_len(K)) {
     sk <- .ssb_resid(S[, k], C, w)
     sx <- .ssb_wip(sk, rx, w); sy <- .ssb_wip(sk, ry, w)
     bk[k] <- sy / sx
     ek <- ry - bk[k] * rx
     vk[k] <- sum((w * sk * ek)^2) / sx^2
-    Fk[k] <- .ssb_uni_robust(rx, sk, w)$fstat
+    Fk[k] <- .ssb_uni_robust(rx, sk, w, p = kp)$fstat
   }
   ok <- is.finite(bk) & is.finite(vk) & vk > 0 & Fk >= min_F
   bb <- bk[ok]; ww <- 1 / vk[ok]
@@ -137,7 +138,7 @@ ssb_first_stage <- function(design) {
   d <- design; w <- .ssb_w(d); C <- .ssb_C(d)
   rx <- .ssb_resid(d$data[[d$vars$x]], C, w)
   rz <- .ssb_resid(d$mat$z, C, w)
-  std <- .ssb_uni_robust(rx, rz, w)
+  std <- .ssb_uni_robust(rx, rz, w, p = .ssb_np(C) + 1L)
   zz <- .ssb_wip(rz, rz, w); pi <- .ssb_wip(rz, rx, w) / zz
   nu <- rx - pi * rz
   mn <- as.numeric(d$mat$g * colSums(w * d$mat$S * nu))   # per-shock scores

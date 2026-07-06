@@ -32,11 +32,12 @@ ssb_rotemberg <- function(design) {
 
   K <- ncol(S)
   sx <- numeric(K); sy <- numeric(K); Fk <- numeric(K)
+  kp <- .ssb_np(C) + 1L                   # intercept + controls + share slope
   for (k in seq_len(K)) {
     sk <- .ssb_resid(S[, k], C, w)       # residualise the share itself (FWL)
     sx[k] <- .ssb_wip(sk, rx, w)
     sy[k] <- .ssb_wip(sk, ry, w)
-    Fk[k] <- .ssb_uni_robust(rx, sk, w)$fstat   # first stage: x on this share
+    Fk[k] <- .ssb_uni_robust(rx, sk, w, p = kp)$fstat   # first stage: x on this share
   }
 
   num   <- g * sx                        # g_n * <s_n, x>
@@ -85,7 +86,7 @@ print.ssb_rotemberg <- function(x, n = 6,
   cat(sprintf("  top %d sectors by |alpha|:\n", min(n, nrow(x))))
   show <- utils::head(x, n)[c("sector", "alpha", "beta", "F")]
   class(show) <- "data.frame"          # avoid dispatching to format.ssb_rotemberg
-  print(format(show, digits = 3), row.names = FALSE)
+  print(format(show, digits = digits), row.names = FALSE)
   cat("  (negative weights are not by themselves a red flag; see GPSS 2020)\n")
   invisible(x)
 }

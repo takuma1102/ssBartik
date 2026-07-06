@@ -16,7 +16,7 @@ Description: Construction, diagnostics, estimation, exposure-robust inference
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:
-    ggplot2,
+    ggplot2 (>= 3.5.0),
     grDevices,
     grid,
     stats,

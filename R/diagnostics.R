@@ -136,7 +136,8 @@ ssb_pretrend <- function(design, pre_y, level = 0.95) {
   e  <- rp - b * rz
   gmom <- w * rz * e
   n <- length(rp)
-  se_ehw <- sqrt(sum(gmom^2) * n / max(n - 1, 1)) / zz
+  k <- .ssb_np(C) + 1L                   # intercept + controls + reduced-form coef
+  se_ehw <- sqrt(sum(gmom^2) * n / max(n - k, 1)) / zz
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
   se_cl <- if (is.null(cl)) NA_real_ else sqrt(.ssb_cluster_meat(gmom, cl)) / zz
   q <- stats::qnorm(1 - (1 - level) / 2)
@@ -180,14 +181,17 @@ ssb_shock_balance <- function(design, shock_covariates, weight = TRUE) {
   miss <- setdiff(keys, names(shock_covariates))
   if (length(miss)) stop("`shock_covariates` must contain: ",
                          paste(keys, collapse = ", "))
-  covs <- setdiff(names(shock_covariates), c(keys, "shock"))
+  covs <- setdiff(names(shock_covariates), c(keys, v$shock_col))
   if (!length(covs)) stop("no covariate columns found in `shock_covariates`.")
 
   key_of <- function(df) if (is.null(v$time)) as.character(df[[v$sector]])
                          else paste(df[[v$sector]], df[[v$time]], sep = "\r")
   idx <- match(key_of(sh), key_of(shock_covariates))
+  if (anyNA(idx))
+    stop(sum(is.na(idx)), " shock cell(s) have no matching row in ",
+         "`shock_covariates`.")
   X   <- as.matrix(shock_covariates[idx, covs, drop = FALSE])
-  g   <- sh$shock
+  g   <- sh[[v$shock_col]]
   wts <- if (weight) .ssb_exposure(design) else rep(1, length(g))
 
   fit <- .ssb_wls(g, cbind(1, X), wts)

@@ -10,7 +10,8 @@
       panel.grid.major = ggplot2::element_line(linewidth = 0.25, colour = "grey90"),
       panel.border     = ggplot2::element_blank(),
       axis.line        = ggplot2::element_line(colour = "grey20", linewidth = 0.4),
-      legend.position  = c(0.99, 0.99),
+      legend.position  = "inside",
+      legend.position.inside = c(0.99, 0.99),
       legend.justification = c(1, 1),
       legend.background = ggplot2::element_rect(fill = "white", colour = "grey70"),
       legend.title     = ggplot2::element_blank(),
@@ -91,7 +92,7 @@ ssb_plot_se <- function(x, title = NULL, ...) {
     stop("ggplot2 is required for plotting; install.packages('ggplot2').")
   .data <- ggplot2::.data
   df <- x[!is.na(x$std.error), , drop = FALSE]
-  lev <- attr(x, "level")
+  lev <- attr(x, "level") %||% 0.95
   lab <- .ssb_se_label(df$method)
   df$method <- factor(lab, levels = rev(lab))
 
@@ -99,9 +100,10 @@ ssb_plot_se <- function(x, title = NULL, ...) {
     ggplot2::geom_vline(xintercept = 0, colour = "grey45", linewidth = 0.5) +
     ggplot2::geom_vline(xintercept = df$estimate[1], linetype = "dotted",
                         colour = "grey70") +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = .data$conf.low,
-                                         xmax = .data$conf.high),
-                            height = 0.18, colour = "#2C6FBB", linewidth = 0.6) +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = .data$conf.low,
+                                        xmax = .data$conf.high),
+                           orientation = "y",
+                           width = 0.18, colour = "#2C6FBB", linewidth = 0.6) +
     ggplot2::geom_point(size = 2.4, colour = "#1B3A5B") +
     ggplot2::expand_limits(x = 0) +      # always show the null so significance is legible
     ggplot2::labs(x = sprintf("Estimate (%.0f%% CI)", 100 * lev),
@@ -232,8 +234,9 @@ ssb_plot_overid <- function(x, level = 0.95, xlim = NULL, title = NULL, ...) {
   ggplot2::ggplot(d, ggplot2::aes(y = .data$sector, x = .data$beta)) +
     ggplot2::geom_vline(xintercept = x$beta_bar, linetype = "dashed",
                         colour = "grey40", linewidth = 0.4) +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = .data$lo, xmax = .data$hi),
-                            height = 0, colour = "#9BB8DA", linewidth = 0.5) +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = .data$lo, xmax = .data$hi),
+                           orientation = "y",
+                           width = 0, colour = "#9BB8DA", linewidth = 0.5) +
     ggplot2::geom_point(ggplot2::aes(size = .data$F), colour = "#1B3A5B") +
     ggplot2::scale_size_area(max_size = 4, guide = "none") +
     ggplot2::coord_cartesian(xlim = as.numeric(rng)) +

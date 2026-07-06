@@ -93,12 +93,14 @@ ssbartik <- function(data, shares, shocks,
                      location = "location", sector = "sector",
                      time = NULL, controls = NULL,
                      weights = NULL, cluster = NULL,
+                     share_col = "share", shock_col = "shock",
                      exogenous = c("shift", "share"),
                      covariates = NULL, pre_y = NULL, placebo_y = NULL,
                      shock_covariates = NULL, top = 5, level = 0.95) {
   d <- ssb_design(data, shares, shocks, y = y, x = x,
                   location = location, sector = sector, time = time,
                   controls = controls, weights = weights, cluster = cluster,
+                  share_col = share_col, shock_col = shock_col,
                   exogenous = exogenous)
   ssb_pipeline(d, covariates = covariates, pre_y = pre_y, placebo_y = placebo_y,
                shock_covariates = shock_covariates, top = top, level = level)

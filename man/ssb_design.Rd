@@ -16,6 +16,8 @@ ssb_design(
   controls = NULL,
   weights = NULL,
   cluster = NULL,
+  share_col = "share",
+  shock_col = "shock",
   exogenous = c("shift", "share")
 )
 }
@@ -25,10 +27,10 @@ location-period). Must contain `y`, `x`, `location`, and any `controls`,
 `weights`, `cluster` columns referenced below.}
 
 \item{shares}{A long `data.frame` of exposure shares with columns
-`location`, `sector`, `share` (and `time` for panels).}
+`location`, `sector`, the share column (`share_col`), and `time` for panels.}
 
-\item{shocks}{A `data.frame` of shocks with columns `sector`, `shock`
-(and `time` for panels).}
+\item{shocks}{A `data.frame` of shocks with columns `sector`, the shock
+column (`shock_col`), and `time` for panels.}
 
 \item{y, x}{Column names (strings) of the outcome and endogenous treatment.}
 
@@ -43,6 +45,12 @@ location-period). Must contain `y`, `x`, `location`, and any `controls`,
 \item{weights}{Optional column name of regression weights in `data`.}
 
 \item{cluster}{Optional column name of a clustering variable in `data`.}
+
+\item{share_col}{Name of the exposure-share column in `shares` (default
+`"share"`).}
+
+\item{shock_col}{Name of the shock (shift) column in `shocks` (default
+`"shock"`).}
 
 \item{exogenous}{Which identification route to emphasise downstream:
 `"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted

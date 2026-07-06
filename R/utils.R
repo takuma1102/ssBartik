@@ -4,6 +4,12 @@ NULL
 
 ## ----- small internal helpers -------------------------------------------------
 
+# Number of parameters partialled out by .ssb_resid: the intercept plus the
+# columns of the control matrix `C` (0 controls -> 1 for the intercept alone).
+# Used so that HC1/iid finite-sample corrections divide by n - k rather than
+# n - 1, i.e. account for the degrees of freedom consumed by the controls.
+.ssb_np <- function(C) 1L + if (is.null(C)) 0L else ncol(as.matrix(C))
+
 # Weighted residualisation of a vector `v` on a control matrix `C` (no intercept
 # column needed; one is added). `w` are regression weights. Returns residuals in
 # the original scale (FWL partialling-out).
@@ -20,15 +26,17 @@ NULL
 
 # Robust (HC1) variance of the slope in a *through-the-origin* weighted
 # regression of `y` on the single regressor `x` (both typically residualised).
+# `p` is the total number of estimated parameters (slope + any controls already
+# partialled out of `x` and `y`); the finite-sample factor is n / (n - p).
 # Returns list(coef, var, fstat).
-.ssb_uni_robust <- function(y, x, w) {
+.ssb_uni_robust <- function(y, x, w, p = 1L) {
   sxx <- sum(w * x * x)
   b   <- sum(w * x * y) / sxx
   e   <- y - b * x
   n   <- length(y)
   meat <- sum((w * x)^2 * e^2)
   vr  <- meat / sxx^2
-  vr  <- vr * n / max(n - 1, 1)          # HC1-style finite-sample scaling
+  vr  <- vr * n / max(n - p, 1)          # HC1-style finite-sample scaling
   list(coef = b, var = vr, fstat = b^2 / vr)
 }
 

@@ -31,7 +31,14 @@ ssb_estimate <- function(design,
                                      "akm", "akm0"),
                          level = 0.95, cluster2 = NULL) {
   stopifnot(inherits(design, "ssb_design"))
+  methods <- tolower(methods)
   methods <- ifelse(methods %in% c("homoskedastic", "homoscedastic"), "iid", methods)
+  known <- c("iid", "ehw", "cluster", "twoway", "akm", "akm0")
+  bad <- setdiff(methods, known)
+  if (length(bad))
+    stop("unknown `methods`: ", paste(bad, collapse = ", "),
+         " (available: ", paste(known, collapse = ", "), ")")
+  methods <- unique(methods)
   d <- design
   w <- .ssb_w(d); C <- .ssb_C(d)
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
@@ -45,7 +52,10 @@ ssb_estimate <- function(design,
   beta <- .ssb_wip(rz, ry, w) / zx
   e    <- ry - beta * rx                 # IV residual
   gmom <- w * rz * e                     # score moments
-  fs   <- .ssb_uni_robust(rx, rz, w)$fstat  # first-stage F (x on z)
+  # parameters consumed: intercept + controls + the structural coefficient, so
+  # HC1/iid finite-sample factors use n - k (not n - 1).
+  k    <- .ssb_np(C) + 1L
+  fs   <- .ssb_uni_robust(rx, rz, w, p = k)$fstat  # first-stage F (x on z)
 
   q <- stats::qnorm(1 - (1 - level) / 2)
   se_of <- function(meat) sqrt(meat) / abs(zx)
@@ -61,10 +71,10 @@ ssb_estimate <- function(design,
 
   for (mth in methods) {
     if (mth == "iid") {
-      sig2 <- sum(w * e^2) / max(n - 1, 1)
+      sig2 <- sum(w * e^2) / max(n - k, 1)
       rows[[mth]] <- row_native(mth, sqrt(sig2 * sum(w * rz^2)) / abs(zx))
     } else if (mth == "ehw") {
-      rows[[mth]] <- row_native(mth, se_of(sum(gmom^2) * n / max(n - 1, 1)))
+      rows[[mth]] <- row_native(mth, se_of(sum(gmom^2) * n / max(n - k, 1)))
     } else if (mth == "cluster") {
       rows[[mth]] <- if (is.null(cl)) row_native(mth, NA_real_, "no cluster var")
                      else row_native(mth, se_of(.ssb_cluster_meat(gmom, cl)))
@@ -146,7 +156,7 @@ print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
   tab <- x[c("method", "estimate", "std.error", "conf.low", "conf.high", "note")]
   tab$method <- .ssb_se_label(tab$method)
   class(tab) <- "data.frame"           # avoid dispatching to format.ssb_estimate
-  print(format(tab, digits = 3), row.names = FALSE)
+  print(format(tab, digits = digits), row.names = FALSE)
   invisible(x)
 }
 

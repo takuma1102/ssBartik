@@ -19,9 +19,9 @@
 #'   location-period). Must contain `y`, `x`, `location`, and any `controls`,
 #'   `weights`, `cluster` columns referenced below.
 #' @param shares A long `data.frame` of exposure shares with columns
-#'   `location`, `sector`, `share` (and `time` for panels).
-#' @param shocks A `data.frame` of shocks with columns `sector`, `shock`
-#'   (and `time` for panels).
+#'   `location`, `sector`, the share column (`share_col`), and `time` for panels.
+#' @param shocks A `data.frame` of shocks with columns `sector`, the shock
+#'   column (`shock_col`), and `time` for panels.
 #' @param y,x Column names (strings) of the outcome and endogenous treatment.
 #' @param location,sector Column names of the unit and sector identifiers.
 #' @param time Optional column name of a period identifier (present in `data`,
@@ -30,6 +30,10 @@
 #'   `data`.
 #' @param weights Optional column name of regression weights in `data`.
 #' @param cluster Optional column name of a clustering variable in `data`.
+#' @param share_col Name of the exposure-share column in `shares` (default
+#'   `"share"`).
+#' @param shock_col Name of the shock (shift) column in `shocks` (default
+#'   `"shock"`).
 #' @param exogenous Which identification route to emphasise downstream:
 #'   `"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted
 #'   aliases.
@@ -41,6 +45,7 @@ ssb_design <- function(data, shares, shocks,
                        location = "location", sector = "sector",
                        time = NULL, controls = NULL,
                        weights = NULL, cluster = NULL,
+                       share_col = "share", shock_col = "shock",
                        exogenous = c("shift", "share")) {
 
   exogenous <- match.arg(exogenous[1],
@@ -53,10 +58,22 @@ ssb_design <- function(data, shares, shocks,
   miss <- setdiff(need, names(data))
   if (length(miss)) stop("columns not found in `data`: ",
                          paste(miss, collapse = ", "))
+  miss <- setdiff(c(location, sector, share_col, time), names(shares))
+  if (length(miss)) stop("columns not found in `shares`: ",
+                         paste(miss, collapse = ", "))
+  miss <- setdiff(c(sector, shock_col, time), names(shocks))
+  if (length(miss)) stop("columns not found in `shocks`: ",
+                         paste(miss, collapse = ", "))
+  shock_key <- if (is.null(time)) shocks[[sector]]
+               else paste(shocks[[sector]], shocks[[time]], sep = "\r")
+  if (anyDuplicated(shock_key))
+    stop("`shocks` must have one row per sector",
+         if (is.null(time)) "" else " x period", " cell.")
 
   vars <- list(y = y, x = x, location = location, sector = sector,
                time = time, controls = controls,
-               weights = weights, cluster = cluster)
+               weights = weights, cluster = cluster,
+               share_col = share_col, shock_col = shock_col)
 
   d <- list(data = data, shares = shares, shocks = shocks,
             vars = vars, exogenous = exogenous)
@@ -86,18 +103,33 @@ ssb_design <- function(data, shares, shocks,
               else paste(shocks[[v$sector]], shocks[[tt]], sep = "\r")
 
   cells <- sk_cellk                      # cell order follows the shocks table
-  g <- shocks$shock
+  g <- shocks[[v$shock_col]]
   names(g) <- cells
 
   ri <- match(sh_rowk,  row_key)
   ci <- match(sh_cellk, cells)
   ok <- !is.na(ri) & !is.na(ci)
-  if (!all(ok)) shares <- shares[ok, , drop = FALSE]
-  ri <- ri[ok]; ci <- ci[ok]
+  if (!all(ok))
+    warning(sum(!ok), " row(s) of `shares` matched no unit in `data` or no ",
+            "cell in `shocks` and were dropped.", call. = FALSE)
+  idx  <- cbind(ri[ok], ci[ok])
+  vals <- shares[[v$share_col]][ok]
+
+  # duplicated (location, sector[, time]) rows would silently overwrite each
+  # other in the matrix assignment below; sum them instead and tell the user.
+  keys <- paste(idx[, 1], idx[, 2], sep = "\r")
+  if (anyDuplicated(keys)) {
+    warning("duplicated (location, sector) rows found in `shares`; ",
+            "their shares were summed.", call. = FALSE)
+    sums  <- rowsum(vals, keys)
+    first <- !duplicated(keys)
+    idx   <- idx[first, , drop = FALSE]
+    vals  <- as.numeric(sums[keys[first], ])
+  }
 
   S <- matrix(0, nrow(data), length(cells),
               dimnames = list(NULL, cells))
-  S[cbind(ri, ci)] <- shares$share[ok] %||% shares$share
+  S[idx] <- vals
 
   z         <- as.numeric(S %*% g)
   share_sum <- rowSums(S)
