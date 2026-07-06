@@ -5,8 +5,9 @@ variables, spanning both identification routes (exogenous shares and exogenous
 shocks) from instrument construction through estimation, inference, and
 credibility diagnostics.
 
-* Estimation: `ssb_design()`, `ssbartik()`, and `ssb_estimate()` with IID, EHW,
-  clustered, two-way, and AKM / AKM0 standard errors.
+* Estimation: `ssb_design()`, `ssbartik()`, and `ssb_estimate()`, reporting a
+  panel of confidence intervals (IID, EHW, and exposure-robust AKM / AKM0 by
+  default; cluster and two-way available on request).
 * Rotemberg / GPSS diagnostics: `ssb_rotemberg()`, `ssb_weight_summary()`,
   `ssb_loo()`, `ssb_drop_top()`.
 * Shock-level (Borusyak-Hull-Jaravel) tools: `ssb_aggregate()`,
@@ -14,6 +15,7 @@ credibility diagnostics.
 * Credibility checks: `ssb_first_stage()`, `ssb_overid()`,
   `ssb_share_balance()`, `ssb_shock_balance()`, `ssb_pretrend()`,
   `ssb_placebo()`, `ssb_ri()`.
-* Output: `autoplot()` / `ssb_plot_*()` figures, and paste-ready tables via
+* Output: `autoplot()` / `ssb_plot_*()` figures (including the
+  `ssb_plot_ci()` interval comparison), and paste-ready tables via
   `format(x, "latex" / "markdown")` and a rendered `plot()` for the Rotemberg
   table.

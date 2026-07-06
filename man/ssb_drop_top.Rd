@@ -4,18 +4,16 @@
 \alias{ssb_drop_top}
 \title{Re-estimate after dropping the top-weight shocks}
 \usage{
-ssb_drop_top(
-  design,
-  n = 5,
-  methods = c("iid", "ehw", "cluster", "akm", "akm0")
-)
+ssb_drop_top(design, n = 5, methods = c("iid", "ehw", "akm", "akm0"))
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
 \item{n}{Number of top-weight shocks to drop.}
 
-\item{methods}{Standard-error methods for the comparison.}
+\item{methods}{Inference methods for the comparison, passed to
+[ssb_estimate()] (defaults to the exposure-robust panel; add `"cluster"` /
+`"twoway"` if wanted).}
 }
 \value{
 A list (class `ssb_drop_top`) with the `dropped` sectors and the

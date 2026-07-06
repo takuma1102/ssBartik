@@ -50,7 +50,7 @@ test_that("duplicated (location, sector) share rows are summed with a warning", 
   shares2 <- rbind(sim$shares, sim$shares[1, ])
   expect_warning(d <- ssb_design(sim$data, shares2, sim$shocks), "summed")
   i <- sim$shares$location[1]; k <- sim$shares$sector[1]
-  expect_equal(d$mat$S[i, as.character(k)], 2 * sim$shares$share[1])
+  expect_equal(unname(d$mat$S[i, as.character(k)]), 2 * sim$shares$share[1])
 })
 
 test_that("ssb_design validates the shares and shocks tables", {
@@ -107,4 +107,35 @@ test_that("EHW SE grows when controls consume degrees of freedom", {
   e <- ry - beta * rx; n <- length(ry)
   se_old <- sqrt(sum((w * rz * e)^2) * n / (n - 1)) / abs(zx)
   expect_gt(se, se_old)
+})
+
+test_that("cluster and two-way are opt-in, not in the default panel", {
+  sim <- ssb_simulate(n_loc = 120, n_sec = 10, seed = 31)
+  sim$data$grp  <- rep(1:6, length.out = nrow(sim$data))
+  sim$data$grp2 <- rep(1:5, length.out = nrow(sim$data))
+  d <- ssb_design(sim$data, sim$shares, sim$shocks,
+                  weights = "pop", cluster = "grp")
+
+  def <- ssb_estimate(d)                       # default methods
+  expect_false(any(c("cluster", "twoway") %in% def$method))
+  expect_setequal(def$method, c("iid", "ehw", "akm", "akm0"))
+
+  # available when explicitly requested
+  with_cl <- ssb_estimate(d, methods = c("ehw", "cluster"))
+  expect_true("cluster" %in% with_cl$method)
+  expect_true(is.finite(with_cl$std.error[with_cl$method == "cluster"]))
+
+  tw <- ssb_estimate(d, methods = c("ehw", "twoway"), cluster2 = "grp2")
+  expect_true("twoway" %in% tw$method)
+  expect_true(is.finite(tw$std.error[tw$method == "twoway"]))
+})
+
+test_that("ssb_plot_ci exists and ssb_plot_se is a deprecated alias", {
+  skip_if_not_installed("ggplot2")
+  sim <- ssb_simulate(n_loc = 80, n_sec = 8, seed = 32)
+  d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop")
+  est <- ssb_estimate(d, methods = c("iid", "ehw"))
+  expect_s3_class(ssb_plot_ci(est), "ggplot")
+  expect_warning(p <- ssb_plot_se(est), "deprecated")
+  expect_s3_class(p, "ggplot")
 })

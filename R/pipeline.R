@@ -142,5 +142,5 @@ summary.ssb_result <- function(object, ...) print(object, ...)
 #' @export
 autoplot.ssb_result <- function(object, ...) {
   if (!is.null(object$rotemberg)) return(ssb_plot_rotemberg(object$rotemberg, ...))
-  ssb_plot_se(object$estimate, ...)
+  ssb_plot_ci(object$estimate, ...)
 }

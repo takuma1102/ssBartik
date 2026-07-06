@@ -1,34 +1,48 @@
-#' Estimate a shift-share IV regression with several standard errors
+#' Estimate a shift-share IV regression with several confidence intervals
 #'
 #' Computes the shift-share 2SLS point estimate of `x` on `y` (instrumented by
 #' the constructed Bartik instrument, controls partialled out via FWL) and
-#' reports a panel of standard errors side by side so the practical importance
-#' of the correction is visible:
+#' reports a panel of intervals side by side so the practical importance of the
+#' inference method is visible:
 #' \itemize{
 #'   \item `iid` --- classical (homoskedastic) IV,
 #'   \item `ehw` --- Eicker-Huber-White (heteroskedasticity-robust),
-#'   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
-#'   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust SE / CI,
+#'   \item `akm`, `akm0` --- Adao-Kolesar-Morales exposure-robust inference,
 #'         via \pkg{ShiftShareSE} when installed,
+#'   \item `cluster` --- naive cluster-robust (needs `cluster` in the design),
 #'   \item `twoway` --- two-way cluster-robust (needs `cluster` in the design
 #'         and `cluster2` here).
 #' }
 #' The point estimate is identical across rows; only the standard errors and
 #' intervals differ, which is exactly what makes the comparison instructive.
 #'
+#' The primary object of the comparison is the **confidence interval**, not the
+#' standard error: AKM0 in particular is defined directly as a (possibly
+#' asymmetric, possibly unbounded) interval, and the `std.error` reported for it
+#' is a symmetric pseudo-SE implied by that interval rather than a conventional
+#' standard error. Read the table and [ssb_plot_ci()] figure as a comparison of
+#' intervals.
+#'
+#' `cluster` and `twoway` are **not** in the default panel --- they are usually
+#' a secondary concern next to the exposure-robust AKM / AKM0 intervals. Request
+#' them explicitly via `methods` when wanted (e.g.
+#' `methods = c("iid", "ehw", "akm", "akm0", "cluster")`, adding `"twoway"` and
+#' `cluster2` for two-way clustering).
+#'
 #' @param design An [ssb_design()] object.
-#' @param methods Which SEs to report (add `"twoway"` for two-way clustering).
+#' @param methods Which methods to report. Defaults to the exposure-robust panel
+#'   (`iid`, `ehw`, `akm`, `akm0`); add `"cluster"` and/or `"twoway"` for
+#'   cluster-robust intervals.
 #' @param level Confidence level for the reported intervals.
 #' @param cluster2 Optional second clustering column in `data` for the
 #'   `"twoway"` method (paired with the design's `cluster`).
 #'
 #' @return A `data.frame` of class `ssb_estimate` with one row per method
 #'   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
-#'   first-stage F as an attribute. Plot with [ssb_plot_se()].
+#'   first-stage F as an attribute. Plot with [ssb_plot_ci()].
 #' @export
 ssb_estimate <- function(design,
-                         methods = c("iid", "ehw", "cluster",
-                                     "akm", "akm0"),
+                         methods = c("iid", "ehw", "akm", "akm0"),
                          level = 0.95, cluster2 = NULL) {
   stopifnot(inherits(design, "ssb_design"))
   methods <- tolower(methods)

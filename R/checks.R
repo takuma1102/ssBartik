@@ -155,12 +155,14 @@ ssb_first_stage <- function(design) {
 #'
 #' @param design An [ssb_design()] object.
 #' @param n Number of top-weight shocks to drop.
-#' @param methods Standard-error methods for the comparison.
+#' @param methods Inference methods for the comparison, passed to
+#'   [ssb_estimate()] (defaults to the exposure-robust panel; add `"cluster"` /
+#'   `"twoway"` if wanted).
 #' @return A list (class `ssb_drop_top`) with the `dropped` sectors and the
 #'   `full` and `reduced` [ssb_estimate()] tables.
 #' @export
 ssb_drop_top <- function(design, n = 5,
-                         methods = c("iid", "ehw", "cluster", "akm", "akm0")) {
+                         methods = c("iid", "ehw", "akm", "akm0")) {
   stopifnot(inherits(design, "ssb_design"))
   rot <- ssb_rotemberg(design)
   dropped <- utils::head(rot$sector, n)

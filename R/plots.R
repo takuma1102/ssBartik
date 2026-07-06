@@ -74,19 +74,21 @@ ssb_plot_rotemberg <- function(x, max_size = 12, label_top = 0,
   p
 }
 
-#' Plot the standard-error comparison
+#' Plot the confidence-interval comparison
 #'
 #' Draws the (identical) point estimate with each method's confidence interval,
 #' making the practical consequences of the inference method immediately
 #' visible --- the naive/EHW intervals are typically far too narrow relative to
-#' the exposure-robust AKM / AKM0 intervals.
+#' the exposure-robust AKM / AKM0 intervals. The comparison is of *intervals*:
+#' AKM0 is defined as an interval directly (and can be asymmetric), so it is the
+#' interval, not a standard error, that is the object of interest.
 #'
 #' @param x An `ssb_estimate` object (from [ssb_estimate()]).
 #' @param title Optional plot title.
 #' @param ... Ignored.
 #' @return A `ggplot` object.
 #' @export
-ssb_plot_se <- function(x, title = NULL, ...) {
+ssb_plot_ci <- function(x, title = NULL, ...) {
   stopifnot(inherits(x, "ssb_estimate"))
   if (!requireNamespace("ggplot2", quietly = TRUE))
     stop("ggplot2 is required for plotting; install.packages('ggplot2').")
@@ -108,8 +110,17 @@ ssb_plot_se <- function(x, title = NULL, ...) {
     ggplot2::expand_limits(x = 0) +      # always show the null so significance is legible
     ggplot2::labs(x = sprintf("Estimate (%.0f%% CI)", 100 * lev),
                   y = NULL,
-                  title = title %||% "Standard-error comparison") +
+                  title = title %||% "Confidence-interval comparison") +
     .ssb_theme()
+}
+
+#' @rdname ssb_plot_ci
+#' @details `ssb_plot_se()` is a deprecated alias retained for backward
+#'   compatibility; use `ssb_plot_ci()`.
+#' @export
+ssb_plot_se <- function(x, title = NULL, ...) {
+  .Deprecated("ssb_plot_ci")
+  ssb_plot_ci(x, title = title, ...)
 }
 
 ## autoplot generics -----------------------------------------------------------
@@ -120,7 +131,7 @@ autoplot.ssb_rotemberg <- function(object, ...) ssb_plot_rotemberg(object, ...)
 
 #' @method autoplot ssb_estimate
 #' @export
-autoplot.ssb_estimate <- function(object, ...) ssb_plot_se(object, ...)
+autoplot.ssb_estimate <- function(object, ...) ssb_plot_ci(object, ...)
 
 ## Additional diagnostic figures ------------------------------------------------
 
