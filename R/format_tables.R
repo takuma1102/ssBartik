@@ -72,11 +72,14 @@ format.ssb_loo <- function(x, output = c("latex", "markdown"), digits = 3,
   headers <- if (output == "latex")
     c("Sector", "$\\hat\\alpha_n$", "$\\hat\\beta_{-n}$")
   else c("Sector", "Rotemberg weight", "Estimate without shock")
+  fbh  <- formatC(attr(x, "beta_hat"), format = "f", digits = digits)
+  note <- if (output == "latex")
+    sprintf(paste0("$\\hat\\alpha_n$ = Rotemberg weight; $\\hat\\beta_{-n}$ = ",
+                   "estimate without shock $n$. Overall estimate = %s."), fbh)
+  else sprintf("Overall estimate = %s.", fbh)
   .ssb_df_table(df, output, headers = headers,
                 caption = caption %||% "Leave-one-out sensitivity", label = label,
-                note = sprintf("Overall estimate = %s.",
-                               formatC(attr(x, "beta_hat"), format = "f", digits = digits)),
-                digits = digits)
+                note = note, digits = digits)
 }
 
 #' @export
@@ -191,8 +194,12 @@ format.ssb_weight_summary <- function(x, output = c("latex", "markdown"),
     paste0(", with covariate exposure ",
            paste(sprintf("(%s) %.2f", names(x$cov_cor), x$cov_cor), collapse = ", "))
   else ""
-  note <- sprintf(paste0("Largest weight = %.3f (%s). Correlation of weights with ",
-                         "just-ID estimates = %.2f, with first-stage F = %.2f%s."),
+  sym <- if (output == "latex")
+    paste0("$\\hat\\alpha_n$ = Rotemberg weight; $\\hat\\beta_n$ = ",
+           "just-identified estimate; $F$ = first-stage $F$; $g_n$ = shock. ")
+  else ""
+  note <- sprintf(paste0(sym, "Largest weight = %.3f (%s). Correlation of weights ",
+                         "with just-ID estimates = %.2f, with first-stage F = %.2f%s."),
                   x$max_alpha, x$max_sector, x$cor[["alpha_vs_beta"]],
                   x$cor[["alpha_vs_F"]], cc)
   .ssb_df_table(df, output, headers = headers,

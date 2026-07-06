@@ -31,8 +31,10 @@
 \item{digits}{Decimal places for the estimates and weights.}
 
 \item{note}{Footnote shown left-aligned below the table (an italic "Note:"
-label is prepended). Defaults to a short definition of the columns; pass
-`NULL` to omit it, or a custom string.}
+label is prepended). Defaults to a definition of the columns rendered in
+maths so the symbols match the headers. Pass `NULL` to omit it, a character
+string for a plain note (explicit line breaks honoured, never auto-wrapped),
+or your own plotmath expression.}
 
 \item{...}{Unused.}
 }

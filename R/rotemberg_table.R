@@ -79,6 +79,10 @@
       paste0(paste(hdr, collapse = " & "), " \\\\"),
       "\\midrule",
       rows,
+      "\\midrule",
+      paste0("\\multicolumn{5}{l}{\\footnotesize $\\hat\\alpha_n$ = Rotemberg ",
+             "weight; $\\hat\\beta_n$ = just-identified estimate; $F$ = ",
+             "first-stage $F$; $g_n$ = shock.} \\\\"),
       "\\bottomrule",
       "\\end{tabular}", "\\end{table}")
   }
@@ -135,7 +139,7 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
 
 # Pure-grid renderer (headless-safe): serif type, centred title/subtitle, three
 # booktabs rules, no shading. Draws onto the current device.
-.ssb_draw_rot_table <- function(x, n = 6, digits = 3, note_lines = character(0)) {
+.ssb_draw_rot_table <- function(x, n = 6, digits = 3, note_lines = list()) {
   d <- .ssb_rot_disp(x, n, digits)
   head_disp  <- list("Sector", quote(hat(alpha)[n]), quote(hat(beta)[n]),
                      "First-stage F", quote(italic(g)[n]))
@@ -193,7 +197,7 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
                     gp = grid::gpar(fontface = "italic", fontsize = 8.5,
                                     fontfamily = ff, col = c_sub))
     for (i in seq_along(note_lines))
-      grid::grid.text(note_lines[i], x = indent,
+      grid::grid.text(note_lines[[i]], x = indent,
                       y = at(lay$y_note + (i - 1L) * lay$note_pitch),
                       just = c("left", "centre"),
                       gp = grid::gpar(fontsize = 8.5, fontfamily = ff, col = c_sub))
@@ -211,12 +215,15 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
     max(nchar(head_plain[j]), max(nchar(cells[[j]]), 1L)) + 2L, integer(1))
   auto_w <- is.null(width)
   if (auto_w) width <- max(5.5, 0.092 * sum(cw) + 1)
-  note_lines <- character(0)
-  if (!is.null(note) && nzchar(note)) {
-    # honour explicit line breaks only -- do NOT auto-wrap (keep it on one line)
-    note_lines <- unlist(strsplit(note, "\n", fixed = TRUE))
-    note_lines <- note_lines[nzchar(trimws(note_lines))]
-    # if the note is wider than the columns, widen the table so it still fits
+  # `note` may be a character string (plain text; explicit line breaks honoured,
+  # never auto-wrapped) or a plotmath expression / language object (rendered as
+  # math, one line) so its symbols can match the column headers.
+  note_lines <- list()
+  if (!is.null(note) && (is.language(note) || (is.character(note) && nzchar(note)))) {
+    note_lines <- if (is.language(note)) list(note) else {
+      parts <- unlist(strsplit(note, "\n", fixed = TRUE))
+      as.list(parts[nzchar(trimws(parts))])
+    }
     if (auto_w) {
       nw <- tryCatch({
         tf <- tempfile(fileext = ".pdf"); grDevices::pdf(tf, width = 30, height = 3)
@@ -224,7 +231,7 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
           grid::textGrob(L, gp = grid::gpar(fontsize = 8.5, fontfamily = "serif"))),
           "inches", valueOnly = TRUE), numeric(1)))
         grDevices::dev.off(); unlink(tf); w
-      }, error = function(e) max(nchar(note_lines)) * 0.055)
+      }, error = function(e) 4.5)
       width <- max(width, (0.34 + nw + 0.25) / 0.92)
     }
   }
@@ -262,8 +269,10 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
 #' @param width,height Figure size in inches; defaults adapt to the content.
 #' @param res Resolution in PPI for the `.png` device (ignored for `.pdf`).
 #' @param note Footnote shown left-aligned below the table (an italic "Note:"
-#'   label is prepended). Defaults to a short definition of the columns; pass
-#'   `NULL` to omit it, or a custom string.
+#'   label is prepended). Defaults to a definition of the columns rendered in
+#'   maths so the symbols match the headers. Pass `NULL` to omit it, a character
+#'   string for a plain note (explicit line breaks honoured, never auto-wrapped),
+#'   or your own plotmath expression.
 #' @param n Number of top-weight shocks to include.
 #' @param digits Decimal places for the estimates and weights.
 #' @param ... Unused.
@@ -280,4 +289,6 @@ plot.ssb_rotemberg <- function(x, file = NULL, width = NULL, height = NULL,
 # Default table note explaining the columns. Pass note = NULL to omit it, or a
 # custom string; the italic "Note:" label is added by the renderer.
 .ssb_rot_note <- function()
-  "alpha = Rotemberg weight; beta = just-identified estimate; F = first-stage F; g = shock."
+  quote(hat(alpha)[n] * " = Rotemberg weight;   " * hat(beta)[n] *
+        " = just-identified estimate;   " * italic(F) * " = first-stage " *
+        italic(F) * ";   " * italic(g)[n] * " = shock")
