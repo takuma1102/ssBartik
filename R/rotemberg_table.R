@@ -290,5 +290,4 @@ plot.ssb_rotemberg <- function(x, file = NULL, width = NULL, height = NULL,
 # custom string; the italic "Note:" label is added by the renderer.
 .ssb_rot_note <- function()
   quote(hat(alpha)[n] * " = Rotemberg weight;   " * hat(beta)[n] *
-        " = just-identified estimate;   " * italic(F) * " = first-stage " *
-        italic(F) * ";   " * italic(g)[n] * " = shock")
+        " = just-identified estimate;   " * italic(g)[n] * " = shock")
