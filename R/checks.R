@@ -4,11 +4,19 @@
 #' just-identified estimates \eqn{\hat\beta_n} are mutually consistent, using a
 #' precision-weighted Cochran's Q statistic
 #' \eqn{Q=\sum_n (\hat\beta_n-\bar\beta)^2/\widehat{\mathrm{Var}}(\hat\beta_n)}
-#' with \eqn{Q\sim\chi^2_{K-1}} under the null of a common coefficient.
+#' referred to a \eqn{\chi^2_{K-1}} distribution.
 #' Rejection points to a failure of shares/shocks exogeneity **or** to
 #' treatment-effect heterogeneity across instruments (Goldsmith-Pinkham, Sorkin
 #' & Swift 2020). Very weak instruments are down-weighted automatically; use
 #' `min_F` to drop near-dead instruments entirely.
+#'
+#' **Caveat.** The \eqn{\hat\beta_n} are estimated from the *same* sample and
+#' are therefore mutually correlated; the \eqn{\chi^2_{K-1}} reference treats
+#' them as independent and ignores that covariance. Read the p-value as a
+#' heuristic screen for gross cross-instrument disagreement, not as a formal
+#' overidentification test --- for the latter, use a J-type test with an
+#' estimator robust to many instruments (e.g. the HFUL-based test in
+#' Goldsmith-Pinkham, Sorkin & Swift 2020).
 #'
 #' @param design An [ssb_design()] object.
 #' @param min_F Drop instruments whose own first-stage F is below this.
@@ -71,21 +79,33 @@ ssb_placebo <- function(design, placebo_y,
 #' Randomization-inference (placebo-shock) test
 #'
 #' Re-draws the shocks by permutation (optionally within exchangeability
-#' `block`s), recomputes the shift-share estimate each time, and reports where
-#' the observed estimate falls in this placebo distribution. The two-sided
-#' randomization-inference p-value tests the sharp null that the shocks do not
-#' affect the outcome, and is robust to the exposure structure (Borusyak & Hull;
-#' Adao-Kolesar-Morales).
+#' `block`s) and reports where the observed statistic falls in the resulting
+#' placebo distribution, in the spirit of Adao-Kolesar-Morales (2019) and
+#' Borusyak & Hull.
+#'
+#' The statistic is Anderson-Rubin-style: the reduced-form coefficient of
+#' \eqn{y - \beta_0 x} on the reconstructed instrument, with
+#' \eqn{\beta_0 =} `null`. Under the constant-effects null \eqn{\beta = \beta_0}
+#' (plus the exclusion restriction), \eqn{y - \beta_0 x} does not respond to how
+#' the shocks are assigned, so the permutation distribution of this statistic is
+#' *exact* given the exchangeability encoded in `block`. Permuting the IV ratio
+#' itself (holding the observed treatment fixed) would *not* be exact --- the
+#' treatment also responds to the shocks through the first stage, and placebo
+#' draws with weak first stages give the ratio very heavy tails --- so this
+#' function does not do that.
 #'
 #' @param design An [ssb_design()] object.
 #' @param R Number of permutation draws.
 #' @param block Optional exchangeability blocks for shocks: a column name in the
 #'   shocks table, or a vector of length equal to the number of shock-cells.
-#'   Shocks are permuted only within blocks.
-#' @param null The null value of the coefficient (default 0).
+#'   Shocks are permuted only within blocks. In sector x period panels you
+#'   almost always want blocks that separate periods, so shocks are not permuted
+#'   across time.
+#' @param null The null value \eqn{\beta_0} of the coefficient (default 0).
 #' @param seed Optional RNG seed.
-#' @return A list (class `ssb_ri`) with `beta`, `p_value`, `R`, and the vector
-#'   `perm` of placebo estimates.
+#' @return A list (class `ssb_ri`) with the IV point estimate `beta`, the
+#'   observed Anderson-Rubin `statistic`, `null`, `p_value`, `R`, and the vector
+#'   `perm` of placebo statistics.
 #' @export
 ssb_ri <- function(design, R = 999, block = NULL, null = 0, seed = NULL) {
   stopifnot(inherits(design, "ssb_design"))
@@ -93,20 +113,24 @@ ssb_ri <- function(design, R = 999, block = NULL, null = 0, seed = NULL) {
   d <- design; w <- .ssb_w(d); C <- .ssb_C(d); S <- d$mat$S; g <- d$mat$g
   ry <- .ssb_resid(d$data[[d$vars$y]], C, w)
   rx <- .ssb_resid(d$data[[d$vars$x]], C, w)
-  b_of <- function(gg) {
+  rz0  <- .ssb_resid(d$mat$z, C, w)
+  b_iv <- .ssb_wip(rz0, ry, w) / .ssb_wip(rz0, rx, w)
+  ynull <- ry - null * rx                # fixed under H0: beta = null
+  t_of <- function(gg) {
     rz <- .ssb_resid(as.numeric(S %*% gg), C, w)
-    .ssb_wip(rz, ry, w) / .ssb_wip(rz, rx, w)
+    .ssb_wip(rz, ynull, w) / .ssb_wip(rz, rz, w)
   }
-  b_obs <- b_of(g)
+  t_obs <- t_of(g)
   blk <- .ssb_block(design, block)
   ug <- unique(blk)
   perm <- vapply(seq_len(R), function(r) {
     gp <- g
     for (bb in ug) { idx <- which(blk == bb); gp[idx] <- g[idx][sample(length(idx))] }
-    b_of(gp)
+    t_of(gp)
   }, numeric(1))
-  p <- (1 + sum(abs(perm - null) >= abs(b_obs - null))) / (R + 1)
-  structure(list(beta = b_obs, null = null, p_value = p, R = R, perm = perm),
+  p <- (1 + sum(abs(perm) >= abs(t_obs))) / (R + 1)   # centered at 0 under H0
+  structure(list(beta = b_iv, statistic = t_obs, null = null,
+                 p_value = p, R = R, perm = perm),
             class = "ssb_ri")
 }
 
@@ -223,6 +247,7 @@ print.ssb_overid <- function(x, ...) {
   cat(sprintf("  instruments used: %d (dropped %d; %d weak, F<10)\n",
               x$n_instruments, x$n_dropped, x$n_weak))
   cat("  small p => reject a common coefficient (exogeneity failure OR heterogeneity)\n")
+  cat("  (heuristic: the beta_k are mutually correlated, so the chi-square reference is approximate)\n")
   invisible(x)
 }
 
@@ -237,7 +262,9 @@ print.ssb_first_stage <- function(x, ...) {
 #' @export
 print.ssb_ri <- function(x, ...) {
   cat("<ssBartik randomization inference>\n")
-  cat(sprintf("  observed beta : %.4f   (null %.3f)\n", x$beta, x$null))
+  cat(sprintf("  IV estimate   : %.4f   (H0: beta = %.3f)\n", x$beta, x$null))
+  cat(sprintf("  AR statistic  : %.4f   (reduced form of y - beta0*x on the instrument)\n",
+              x$statistic))
   cat(sprintf("  RI p-value    : %.4f   (%d permutations)\n", x$p_value, x$R))
   invisible(x)
 }

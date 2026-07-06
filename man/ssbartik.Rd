@@ -45,8 +45,11 @@ column (`shock_col`), and `time` for panels.}
 \item{time}{Optional column name of a period identifier (present in `data`,
 `shares` and `shocks`) for panel designs.}
 
-\item{controls}{Optional character vector of numeric control columns in
-`data`.}
+\item{controls}{Optional character vector of control columns in `data`.
+Numeric columns enter linearly; factor or character columns are expanded
+into dummies, so period or region fixed effects can be supplied as
+factors (in panel shift-share designs, period fixed effects are usually
+essential --- shocks should be compared within periods).}
 
 \item{weights}{Optional column name of regression weights in `data`.}
 

@@ -97,12 +97,22 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
   lev <- attr(x, "level") %||% 0.95
   lab <- .ssb_se_label(df$method)
   df$method <- factor(lab, levels = rev(lab))
+  # AKM0 confidence sets can be disjoint (encoded conf.low > conf.high) or
+  # unbounded under weak instruments; a plain error bar would silently draw
+  # them wrong, so plot only the point and flag them in the subtitle.
+  bad <- (!is.finite(df$conf.low) | !is.finite(df$conf.high) |
+            df$conf.low > df$conf.high)
+  sub <- if (any(bad))
+    sprintf("%s: confidence set unbounded or disjoint (weak instrument); see the printed table",
+            paste(lab[bad], collapse = ", "))
+  else NULL
 
   ggplot2::ggplot(df, ggplot2::aes(y = .data$method, x = .data$estimate)) +
     ggplot2::geom_vline(xintercept = 0, colour = "grey45", linewidth = 0.5) +
     ggplot2::geom_vline(xintercept = df$estimate[1], linetype = "dotted",
                         colour = "grey70") +
-    ggplot2::geom_errorbar(ggplot2::aes(xmin = .data$conf.low,
+    ggplot2::geom_errorbar(data = df[!bad, , drop = FALSE],
+                           ggplot2::aes(xmin = .data$conf.low,
                                         xmax = .data$conf.high),
                            orientation = "y",
                            width = 0.18, colour = "#2C6FBB", linewidth = 0.6) +
@@ -110,7 +120,8 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
     ggplot2::expand_limits(x = 0) +      # always show the null so significance is legible
     ggplot2::labs(x = sprintf("Estimate (%.0f%% CI)", 100 * lev),
                   y = NULL,
-                  title = title %||% "Confidence-interval comparison") +
+                  title = title %||% "Confidence-interval comparison",
+                  subtitle = sub) +
     .ssb_theme()
 }
 
@@ -173,22 +184,26 @@ ssb_plot_ri <- function(x, bins = 30, title = NULL, ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE))
     stop("ggplot2 is required for plotting; install.packages('ggplot2').")
   .data <- ggplot2::.data
-  # single-share permutations can blow up (weak instruments); trim the tails so
-  # the bulk of the null is legible. The p-value still uses ALL permutations.
+  # the statistic is the AR reduced-form coefficient, centered at 0 under H0.
+  obs    <- x$statistic
+  center <- 0
+  xlab   <- "Permuted-shock reduced-form (AR) statistic"
+  # trim extreme placebo draws so the bulk of the null is legible. The p-value
+  # still uses ALL permutations.
   xr <- stats::quantile(x$perm, c(0.025, 0.975), na.rm = TRUE)
-  xr <- range(c(as.numeric(xr), x$beta, x$null))
+  xr <- range(c(as.numeric(xr), obs, center))
   keep <- is.finite(x$perm) & x$perm >= xr[1] & x$perm <= xr[2]
   ntrim <- sum(!keep)
   df <- data.frame(perm = x$perm[keep])
   sub <- sprintf("observed = %.3f;  RI p = %.3f  (%d permutations%s)",
-                 x$beta, x$p_value, x$R,
+                 obs, x$p_value, x$R,
                  if (ntrim > 0) sprintf("; %d tail draws off-axis", ntrim) else "")
   ggplot2::ggplot(df, ggplot2::aes(x = .data$perm)) +
     ggplot2::geom_histogram(bins = bins, fill = "grey80",
                             colour = "white", linewidth = 0.2) +
-    ggplot2::geom_vline(xintercept = x$null, linetype = "dotted", colour = "grey50") +
-    ggplot2::geom_vline(xintercept = x$beta, colour = "#2C6FBB", linewidth = 0.9) +
-    ggplot2::labs(x = expression("Permuted-shock estimate" ~ (hat(beta))),
+    ggplot2::geom_vline(xintercept = center, linetype = "dotted", colour = "grey50") +
+    ggplot2::geom_vline(xintercept = obs, colour = "#2C6FBB", linewidth = 0.9) +
+    ggplot2::labs(x = xlab,
                   y = "Count", title = title %||% "Randomization inference",
                   subtitle = sub) +
     .ssb_theme()

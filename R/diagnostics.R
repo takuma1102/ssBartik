@@ -50,17 +50,18 @@ print.ssb_shocks <- function(x, ...) {
 ssb_loo <- function(design, top = 5) {
   rot <- ssb_rotemberg(design)
   bh  <- attr(rot, "beta_hat")
-  w <- .ssb_w(design); C <- .ssb_C(design)
-  S <- design$mat$S; g <- design$mat$g
-  rx <- .ssb_resid(design$data[[design$vars$x]], C, w)
-  ry <- .ssb_resid(design$data[[design$vars$y]], C, w)
+  w <- .ssb_w(design)
   cell <- design$mat$cell_sector
   top <- min(top, nrow(rot))
   res <- lapply(seq_len(top), function(i) {
-    k <- which(cell == rot$sector[i])
-    keep <- setdiff(seq_along(g), k)
-    zt <- as.numeric(S[, keep, drop = FALSE] %*% g[keep])
-    rz <- .ssb_resid(zt, C, w)
+    # rebuild the design without the cell so that, on the shift route with
+    # incomplete shares, the sum-of-shares control tracks the reduced design
+    # (consistent with ssb_drop_top); a no-op for complete designs.
+    d2 <- .ssb_subset(design, cell != rot$sector[i])
+    C2 <- .ssb_C(d2)
+    rx <- .ssb_resid(design$data[[design$vars$x]], C2, w)
+    ry <- .ssb_resid(design$data[[design$vars$y]], C2, w)
+    rz <- .ssb_resid(d2$mat$z, C2, w)
     b  <- .ssb_wip(rz, ry, w) / .ssb_wip(rz, rx, w)
     data.frame(sector = rot$sector[i], alpha = rot$alpha[i], beta_drop = b,
                stringsAsFactors = FALSE)
@@ -100,6 +101,7 @@ ssb_share_balance <- function(design, covariates, top = 5) {
     bread <- solve(crossprod(Xd * sqrt(w)))
     meat <- crossprod(Xd * (w * e))
     V <- bread %*% meat %*% bread
+    V <- V * nrow(Xd) / max(nrow(Xd) - ncol(Xd), 1)   # HC1 finite-sample factor
     tval <- b / sqrt(diag(V)[-1])
     data.frame(sector = design$mat$cell_sector[k],
                covariate = covariates, coef = b, t = tval,
@@ -118,11 +120,21 @@ ssb_share_balance <- function(design, covariates, top = 5) {
 #' outcome; pre-trends ask whether exposure predicts the outcome *before* the
 #' shocks, placebo asks whether the design moves an outcome it should not.
 #'
+#' Because the regressor is itself a shift-share variable, EHW / cluster
+#' standard errors are subject to exactly the over-rejection documented by
+#' Adao, Kolesar & Morales (2019): residuals are correlated across units with
+#' similar exposure. The test therefore also reports an exposure-robust
+#' (AKM-type) standard error that clusters the score at the shock level; treat
+#' that one as the headline, especially on the shift route, or spurious
+#' "pre-trends" will appear too often.
+#'
 #' @param design An [ssb_design()] object.
 #' @param pre_y Column name of the pre-period outcome (or pre-period change).
 #' @param level Confidence level.
-#' @return A list (class `ssb_pretrend`) with the reduced-form coefficient and
-#'   EHW / cluster standard errors.
+#' @return A list (class `ssb_pretrend`) with the reduced-form coefficient,
+#'   EHW / cluster / exposure-robust (AKM) standard errors, the corresponding
+#'   p-values (`p_ehw`, `p_akm`), and intervals (`conf.low`/`conf.high` use the
+#'   EHW SE; `conf.low_akm`/`conf.high_akm` the exposure-robust SE).
 #' @export
 ssb_pretrend <- function(design, pre_y, level = 0.95) {
   stopifnot(inherits(design, "ssb_design"))
@@ -140,10 +152,18 @@ ssb_pretrend <- function(design, pre_y, level = 0.95) {
   se_ehw <- sqrt(sum(gmom^2) * n / max(n - k, 1)) / zz
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
   se_cl <- if (is.null(cl)) NA_real_ else sqrt(.ssb_cluster_meat(gmom, cl)) / zz
+  # exposure-robust (AKM-type) SE: sum the score within each shock-cell,
+  # sum_i w_i z_i e_i = sum_n g_n sum_i w_i s_in e_i (e is orthogonal to the
+  # controls, so raw and residualised shares agree in this inner product).
+  mn <- as.numeric(d$mat$g * colSums(w * d$mat$S * e))
+  se_akm <- sqrt(sum(mn^2)) / zz
   q <- stats::qnorm(1 - (1 - level) / 2)
   structure(list(coef = b, se_ehw = se_ehw, se_cluster = se_cl,
+                 se_akm = se_akm,
                  p_ehw = 2 * stats::pnorm(-abs(b / se_ehw)),
+                 p_akm = 2 * stats::pnorm(-abs(b / se_akm)),
                  conf.low = b - q * se_ehw, conf.high = b + q * se_ehw,
+                 conf.low_akm = b - q * se_akm, conf.high_akm = b + q * se_akm,
                  pre_y = pre_y), class = "ssb_pretrend")
 }
 
@@ -151,10 +171,13 @@ ssb_pretrend <- function(design, pre_y, level = 0.95) {
 print.ssb_pretrend <- function(x, ...) {
   cat("<ssBartik pre-trend test (reduced form on instrument)>\n")
   cat(sprintf("  pre-period outcome : %s\n", x$pre_y))
-  cat(sprintf("  coef %.4f   se(EHW) %.4f   se(cluster) %s   p(EHW) %.3f\n",
-              x$coef, x$se_ehw,
+  cat(sprintf("  coef %.4f\n", x$coef))
+  cat(sprintf("  se   : EHW %.4f | cluster %s | exposure-robust (AKM) %.4f\n",
+              x$se_ehw,
               if (is.na(x$se_cluster)) "NA" else sprintf("%.4f", x$se_cluster),
-              x$p_ehw))
+              x$se_akm))
+  cat(sprintf("  p    : EHW %.3f | exposure-robust %.3f\n", x$p_ehw, x$p_akm))
+  cat("  (the regressor is shift-share: EHW over-rejects, use the exposure-robust p)\n")
   cat("  coefficient near 0 => no differential pre-trend by exposure\n")
   invisible(x)
 }

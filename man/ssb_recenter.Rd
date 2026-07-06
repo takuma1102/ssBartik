@@ -28,11 +28,13 @@ process, so identification comes only from deviations of shocks from their
   \item `"demean"` (default): subtract the single exposure-weighted mean shock
         \eqn{\bar g}. Leaves the point estimate unchanged but makes the
         identifying variation explicit.
-  \item `"permute"`: subtract a *block-specific* exposure-weighted mean shock,
-        i.e. recenter within exchangeability groups. This is the expectation
-        of the instrument under within-block permutations of the shocks
-        (Borusyak & Hull), computed analytically. With no `block` it reduces
-        to `"demean"`.
+  \item `"permute"`: subtract the *block-specific simple average* shock, i.e.
+        recenter within exchangeability groups. Under uniform within-block
+        permutation every cell in a block is equally likely to receive each
+        of the block's shocks, so \eqn{E[g_n]} is the unweighted within-block
+        mean; subtracting it gives the expectation of the instrument under
+        that assignment process (Borusyak & Hull), computed analytically.
+        With no `block` this recenters by the grand unweighted mean.
 }
 For randomization-inference p-values based on the same permutation idea, see
 [ssb_ri()].

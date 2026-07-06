@@ -8,7 +8,8 @@ ssb_estimate(
   design,
   methods = c("iid", "ehw", "akm", "akm0"),
   level = 0.95,
-  cluster2 = NULL
+  cluster2 = NULL,
+  shock_cluster = NULL
 )
 }
 \arguments{
@@ -22,6 +23,14 @@ cluster-robust intervals.}
 
 \item{cluster2}{Optional second clustering column in `data` for the
 `"twoway"` method (paired with the design's `cluster`).}
+
+\item{shock_cluster}{Optional grouping of the shocks for the AKM / AKM0
+variance: a column name in the shocks table, or a vector of length equal
+to the number of shock-cells. Use it when shocks are mutually correlated
+within groups --- e.g. sub-industries within broader industries, or
+sector cells of the same sector across periods --- so the exposure-robust
+variance is clustered at the group level (Adao, Kolesar & Morales 2019;
+passed to \pkg{ShiftShareSE} as `sector_cvar`).}
 }
 \value{
 A `data.frame` of class `ssb_estimate` with one row per method
@@ -51,7 +60,11 @@ standard error: AKM0 in particular is defined directly as a (possibly
 asymmetric, possibly unbounded) interval, and the `std.error` reported for it
 is a symmetric pseudo-SE implied by that interval rather than a conventional
 standard error. Read the table and [ssb_plot_ci()] figure as a comparison of
-intervals.
+intervals. When the instrument is weak the AKM0 confidence *set* need not be
+an interval at all: it can be the whole real line or the complement of an
+interval (a union of two rays). \pkg{ShiftShareSE} encodes the latter as
+`conf.low > conf.high`; `ssb_estimate()` flags both cases in the `note`
+column and the table/plot methods render them accordingly.
 
 `cluster` and `twoway` are **not** in the default panel --- they are usually
 a secondary concern next to the exposure-robust AKM / AKM0 intervals. Request

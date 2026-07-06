@@ -6,9 +6,9 @@
 
 Shift-share / Bartik IV analysis in R is currently spread across several excellent but single-purpose tools, each
 of which has its own data conventions. `ssBartik` connects those steps
-into one consistent workflow: (a) variable construct → (b) diagnose → (c) estimate → (d) infer →
+into one consistent workflow: (a) construct variables → (b) diagnose → (c) estimate → (d) infer →
 (e) visualize, organized around the two identification routes of the modern
-literature (i.e., exogeneous **shift** and exogenous **share** approaches).
+literature (i.e., exogenous **shift** and exogenous **share** approaches).
 
 Once you pick the identification route with a single
 argument (`exogenous = "share"` or `"shift"`), everything downstream follows from variable construction to visualization.
@@ -41,7 +41,7 @@ library(ssBartik)
 # one call: build the design and run the full pipeline
 res <- ssbartik(df$data, df$shares, df$shocks,
                 controls = "w1", weights = "pop",
-                exogenous = "share",       # or "shift"; each analysist has to pick the right identification design
+                exogenous = "share",       # or "shift"; each analyst has to pick the right identification design
                 covariates = "w1")
 res                                        # printed estimate + diagnostics
 
@@ -96,12 +96,12 @@ ssb_overid(d)                    # do the per-share estimates agree? (Cochran's 
 ssb_shock_balance(d, shock_covariates = sc)  # shocks vs. pre-determined characteristics
 ssb_pretrend(d, pre_y = "y_pre")             # does exposure predict pre-trends?
 ssb_placebo(d, placebo_y = "y_plac")         # full IV on an outcome that shouldn't move
-ssb_ri(d, R = 999, block = "region")         # randomization inference (placebo shocks)
+ssb_ri(d, R = 999, block = "grp")            # AR-style randomization inference (shocks permuted within blocks)
 
 # sensitivity to influential shocks
 ssb_weight_summary(d, covariates = "w1")     # who carries the weight? (α vs. βₖ, F, covariates)
 ssb_drop_top(d, n = 5)                        # re-estimate without the top-weight shocks
-ssb_recenter(d, method = "permute", block = "region")  # block-wise recentering
+ssb_recenter(d, method = "permute", block = "grp")     # block-wise recentering (within-block mean shock)
 ```
 
 Each returns a small object with a readable `print()` method; the same checks
@@ -160,7 +160,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | `ssb_shock_balance()` | shock-vs-characteristics balance (shift route) |
 | `ssb_pretrend()` | pre-trend test (reduced form of a pre-period outcome on the instrument) |
 | `ssb_placebo()` | placebo-outcome test (full IV on an outcome that should not move) |
-| `ssb_ri()` | randomization inference (placebo shocks) |
+| `ssb_ri()` | randomization inference (Anderson-Rubin-style placebo shocks) |
 | `ssb_loo()` | leave-one-sector-out sensitivity |
 | `ssb_drop_top()` | re-estimate after dropping the top-weight shocks together |
 | `ssb_recenter()` | recentering — demean or block-wise permute (Borusyak & Hull) |

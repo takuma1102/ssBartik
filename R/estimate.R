@@ -21,7 +21,11 @@
 #' asymmetric, possibly unbounded) interval, and the `std.error` reported for it
 #' is a symmetric pseudo-SE implied by that interval rather than a conventional
 #' standard error. Read the table and [ssb_plot_ci()] figure as a comparison of
-#' intervals.
+#' intervals. When the instrument is weak the AKM0 confidence *set* need not be
+#' an interval at all: it can be the whole real line or the complement of an
+#' interval (a union of two rays). \pkg{ShiftShareSE} encodes the latter as
+#' `conf.low > conf.high`; `ssb_estimate()` flags both cases in the `note`
+#' column and the table/plot methods render them accordingly.
 #'
 #' `cluster` and `twoway` are **not** in the default panel --- they are usually
 #' a secondary concern next to the exposure-robust AKM / AKM0 intervals. Request
@@ -36,6 +40,13 @@
 #' @param level Confidence level for the reported intervals.
 #' @param cluster2 Optional second clustering column in `data` for the
 #'   `"twoway"` method (paired with the design's `cluster`).
+#' @param shock_cluster Optional grouping of the shocks for the AKM / AKM0
+#'   variance: a column name in the shocks table, or a vector of length equal
+#'   to the number of shock-cells. Use it when shocks are mutually correlated
+#'   within groups --- e.g. sub-industries within broader industries, or
+#'   sector cells of the same sector across periods --- so the exposure-robust
+#'   variance is clustered at the group level (Adao, Kolesar & Morales 2019;
+#'   passed to \pkg{ShiftShareSE} as `sector_cvar`).
 #'
 #' @return A `data.frame` of class `ssb_estimate` with one row per method
 #'   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
@@ -43,7 +54,7 @@
 #' @export
 ssb_estimate <- function(design,
                          methods = c("iid", "ehw", "akm", "akm0"),
-                         level = 0.95, cluster2 = NULL) {
+                         level = 0.95, cluster2 = NULL, shock_cluster = NULL) {
   stopifnot(inherits(design, "ssb_design"))
   methods <- tolower(methods)
   methods <- ifelse(methods %in% c("homoskedastic", "homoscedastic"), "iid", methods)
@@ -81,7 +92,8 @@ ssb_estimate <- function(design,
 
   rows <- list()
   akm_req <- intersect(methods, c("akm", "akm0"))
-  akm_tab <- if (length(akm_req)) .ssb_akm(d, akm_req, level) else NULL
+  scl <- if (is.null(shock_cluster)) NULL else .ssb_block(d, shock_cluster)
+  akm_tab <- if (length(akm_req)) .ssb_akm(d, akm_req, level, scl) else NULL
 
   for (mth in methods) {
     if (mth == "iid") {
@@ -115,7 +127,9 @@ ssb_estimate <- function(design,
 # Adao-Kolesar-Morales exposure-robust inference via ShiftShareSE::ivreg_ss.
 # Calls the package once and returns a tidy block for the requested akm methods;
 # degrades to NA rows with an informative note when the package/estimation fails.
-.ssb_akm <- function(d, methods, level) {
+# `shock_cluster` (if given) is passed through as sector_cvar to cluster the
+# exposure-robust variance across correlated shocks.
+.ssb_akm <- function(d, methods, level, shock_cluster = NULL) {
   na_row <- function(m, note) data.frame(
     method = m, estimate = NA_real_, std.error = NA_real_,
     conf.low = NA_real_, conf.high = NA_real_, note = note,
@@ -138,6 +152,7 @@ ssb_estimate <- function(design,
     ShiftShareSE::ivreg_ss(
       formula = fml, X = d$mat$z, data = d$data, W = d$mat$S,
       method = methods, weights = wts, region_cvar = rcv,
+      sector_cvar = shock_cluster,
       alpha = 1 - level),
     error = function(e) e)
   if (inherits(res, "error"))
@@ -147,11 +162,22 @@ ssb_estimate <- function(design,
   key <- c(akm = "AKM", akm0 = "AKM0")
   do.call(rbind, lapply(methods, function(m) {
     k <- key[[m]]
+    lo <- unname(res$ci.l[[k]]); hi <- unname(res$ci.r[[k]])
+    note <- ""
+    if (m == "akm0") {
+      # ShiftShareSE encodes a disjoint AKM0 confidence set (weak instrument)
+      # as ci.l > ci.r -- the set is (-Inf, ci.r] U [ci.l, Inf) -- and the
+      # whole real line as (-Inf, Inf).
+      if (is.finite(lo) && is.finite(hi) && lo > hi)
+        note <- sprintf("disjoint CI: (-Inf, %.4g] U [%.4g, Inf)", hi, lo)
+      else if (!is.finite(lo) || !is.finite(hi))
+        note <- "unbounded CI (weak instrument)"
+    }
     data.frame(method = m, estimate = unname(res$beta),
                std.error = unname(res$se[[k]]),
-               conf.low = unname(res$ci.l[[k]]),
-               conf.high = unname(res$ci.r[[k]]),
-               note = "", stringsAsFactors = FALSE)
+               conf.low = lo,
+               conf.high = hi,
+               note = note, stringsAsFactors = FALSE)
   }))
 }
 
@@ -202,7 +228,14 @@ print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
   }
   ci <- function(lo, hi) {
     l <- num(lo); h <- num(hi)
-    if (l == "" && h == "") "" else sprintf("[%s, %s]", l, h)
+    if (l == "" && h == "") return("")
+    if (is.finite(lo) && is.finite(hi) && lo > hi) {
+      # disjoint AKM0 confidence set: the complement of an interval
+      return(if (output == "latex")
+               sprintf("$(-\\infty, %s] \\cup [%s, \\infty)$", h, l)
+             else sprintf("(-Inf, %s] U [%s, Inf)", h, l))
+    }
+    sprintf("[%s, %s]", l, h)
   }
   meth <- .ssb_se_label(d$method)
   est  <- vapply(d$estimate,  num, character(1))

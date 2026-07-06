@@ -20,7 +20,8 @@ test_that("point estimate recovers the truth in a clean simulation", {
 
 test_that("recentering (demean) leaves the point estimate unchanged", {
   sim <- ssb_simulate(seed = 3)
-  d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop")
+  d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop",
+                  exogenous = "shift")
   b0 <- ssb_estimate(d, methods = "ehw")$estimate[1]
   b1 <- ssb_estimate(ssb_recenter(d), methods = "ehw")$estimate[1]
   expect_equal(b0, b1, tolerance = 1e-8)
@@ -48,7 +49,8 @@ test_that("share rows matching no shock cell are dropped without corrupting z", 
 test_that("duplicated (location, sector) share rows are summed with a warning", {
   sim <- ssb_simulate(n_loc = 50, n_sec = 6, seed = 12)
   shares2 <- rbind(sim$shares, sim$shares[1, ])
-  expect_warning(d <- ssb_design(sim$data, shares2, sim$shocks), "summed")
+  expect_warning(d <- ssb_design(sim$data, shares2, sim$shocks,
+                                 exogenous = "shift"), "summed")
   i <- sim$shares$location[1]; k <- sim$shares$sector[1]
   expect_equal(unname(d$mat$S[i, as.character(k)]), 2 * sim$shares$share[1])
 })
@@ -56,18 +58,20 @@ test_that("duplicated (location, sector) share rows are summed with a warning", 
 test_that("ssb_design validates the shares and shocks tables", {
   sim <- ssb_simulate(seed = 13)
   expect_error(
-    ssb_design(sim$data, sim$shares[c("location", "sector")], sim$shocks),
+    ssb_design(sim$data, sim$shares[c("location", "sector")], sim$shocks,
+               exogenous = "shift"),
     "shares"
   )
   expect_error(
-    ssb_design(sim$data, sim$shares, rbind(sim$shocks, sim$shocks[1, ])),
+    ssb_design(sim$data, sim$shares, rbind(sim$shocks, sim$shocks[1, ]),
+               exogenous = "shift"),
     "one row per sector"
   )
 })
 
 test_that("ssb_estimate rejects unknown SE methods", {
   sim <- ssb_simulate(n_loc = 50, n_sec = 6, seed = 14)
-  d <- ssb_design(sim$data, sim$shares, sim$shocks)
+  d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
   expect_error(ssb_estimate(d, methods = "bootstrap"), "unknown")
   expect_silent(ssb_estimate(d, methods = "EHW"))   # case-insensitive
 })
@@ -77,9 +81,10 @@ test_that("share_col / shock_col allow non-default column names", {
   shares2 <- sim$shares; names(shares2)[names(shares2) == "share"] <- "w_in"
   shocks2 <- sim$shocks; names(shocks2)[names(shocks2) == "shock"] <- "g_n"
 
-  d0 <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop")
+  d0 <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop",
+                   exogenous = "shift")
   d1 <- ssb_design(sim$data, shares2, shocks2, weights = "pop",
-                   share_col = "w_in", shock_col = "g_n")
+                   share_col = "w_in", shock_col = "g_n", exogenous = "shift")
   expect_equal(d0$mat$z, d1$mat$z)
   expect_equal(d0$mat$g, d1$mat$g)
 
@@ -114,7 +119,7 @@ test_that("cluster and two-way are opt-in, not in the default panel", {
   sim$data$grp  <- rep(1:6, length.out = nrow(sim$data))
   sim$data$grp2 <- rep(1:5, length.out = nrow(sim$data))
   d <- ssb_design(sim$data, sim$shares, sim$shocks,
-                  weights = "pop", cluster = "grp")
+                  weights = "pop", cluster = "grp", exogenous = "shift")
 
   def <- ssb_estimate(d)                       # default methods
   expect_false(any(c("cluster", "twoway") %in% def$method))
@@ -133,7 +138,8 @@ test_that("cluster and two-way are opt-in, not in the default panel", {
 test_that("ssb_plot_ci renders and the old ssb_plot_se name is gone", {
   skip_if_not_installed("ggplot2")
   sim <- ssb_simulate(n_loc = 80, n_sec = 8, seed = 32)
-  d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop")
+  d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop",
+                  exogenous = "shift")
   est <- ssb_estimate(d, methods = c("iid", "ehw"))
   expect_s3_class(ssb_plot_ci(est), "ggplot")
   # the deprecated alias was removed: it must not be exported

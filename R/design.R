@@ -26,8 +26,11 @@
 #' @param location,sector Column names of the unit and sector identifiers.
 #' @param time Optional column name of a period identifier (present in `data`,
 #'   `shares` and `shocks`) for panel designs.
-#' @param controls Optional character vector of numeric control columns in
-#'   `data`.
+#' @param controls Optional character vector of control columns in `data`.
+#'   Numeric columns enter linearly; factor or character columns are expanded
+#'   into dummies, so period or region fixed effects can be supplied as
+#'   factors (in panel shift-share designs, period fixed effects are usually
+#'   essential --- shocks should be compared within periods).
 #' @param weights Optional column name of regression weights in `data`.
 #' @param cluster Optional column name of a clustering variable in `data`.
 #' @param share_col Name of the exposure-share column in `shares` (default
@@ -47,6 +50,13 @@ ssb_design <- function(data, shares, shocks,
                        weights = NULL, cluster = NULL,
                        share_col = "share", shock_col = "shock",
                        exogenous = c("shift", "share")) {
+
+  # the route is an identification assumption (it also toggles the
+  # incomplete-shares control): don't let it default silently.
+  if (identical(exogenous, c("shift", "share")))
+    message("ssb_design(): `exogenous` not specified; defaulting to the ",
+            "exogenous-SHIFT route. The route determines which controls and ",
+            "diagnostics apply -- set it explicitly (\"shift\" or \"share\").")
 
   exogenous <- match.arg(exogenous[1],
                          c("shift", "share", "shock", "shares"))
@@ -171,7 +181,20 @@ summary.ssb_design <- function(object, ...) print(object, ...)
 }
 .ssb_C <- function(d) {
   ctl <- d$vars$controls
-  C <- if (is.null(ctl)) NULL else as.matrix(d$data[, ctl, drop = FALSE])
+  C <- NULL
+  if (!is.null(ctl)) {
+    df <- d$data[, ctl, drop = FALSE]
+    if (anyNA(df))
+      stop("control columns contain missing values: ",
+           paste(ctl[vapply(df, anyNA, logical(1))], collapse = ", "))
+    if (all(vapply(df, is.numeric, logical(1)))) {
+      C <- as.matrix(df)
+    } else {
+      # expand factor / character controls into dummies (e.g. period or region
+      # fixed effects); drop the intercept column since .ssb_resid adds one.
+      C <- stats::model.matrix(~ ., data = df)[, -1, drop = FALSE]
+    }
+  }
   # for the shift route, always control for the sum of exposure shares when the
   # design is incomplete (Borusyak, Hull & Jaravel 2022, sec. 3.2)
   if (d$exogenous == "shift" && !d$mat$complete) {
