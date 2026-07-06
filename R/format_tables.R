@@ -72,6 +72,14 @@ format.ssb_loo <- function(x, output = c("latex", "markdown"), digits = 3,
   headers <- if (output == "latex")
     c("Sector", "$\\hat\\alpha_n$", "$\\hat\\beta_{-n}$")
   else c("Sector", "Rotemberg weight", "Estimate without shock")
+  if (all(c("conf.low", "conf.high") %in% names(x))) {
+    fmt <- function(v) ifelse(is.na(v), "", formatC(v, format = "f", digits = digits))
+    df$ci <- ifelse(fmt(x$conf.low) == "" & fmt(x$conf.high) == "", "",
+                    sprintf("[%s, %s]", fmt(x$conf.low), fmt(x$conf.high)))
+    lev <- attr(x, "level") %||% 0.95
+    headers <- c(headers, if (output == "latex") sprintf("%.0f\\%% CI", 100 * lev)
+                          else sprintf("%.0f%% CI", 100 * lev))
+  }
   fbh  <- formatC(attr(x, "beta_hat"), format = "f", digits = digits)
   note <- if (output == "latex")
     sprintf(paste0("$\\hat\\alpha_n$ = Rotemberg weight; $\\hat\\beta_{-n}$ = ",
@@ -85,7 +93,10 @@ format.ssb_loo <- function(x, output = c("latex", "markdown"), digits = 3,
 #' @export
 print.ssb_loo <- function(x, ...) {
   cat(sprintf("<ssBartik leave-one-out>  overall beta = %.4f\n", attr(x, "beta_hat")))
-  d <- x[c("sector", "alpha", "beta_drop")]; class(d) <- "data.frame"
+  cols <- c("sector", "alpha", "beta_drop")
+  if (all(c("conf.low", "conf.high") %in% names(x)))
+    cols <- c(cols, "conf.low", "conf.high")
+  d <- x[cols]; class(d) <- "data.frame"
   print(format(d, digits = 3), row.names = FALSE)
   invisible(x)
 }

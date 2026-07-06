@@ -156,14 +156,30 @@ ssb_plot_loo <- function(x, title = NULL, ...) {
   bh <- attr(x, "beta_hat")
   df <- x; class(df) <- "data.frame"
   df$sector <- factor(df$sector, levels = rev(df$sector))
-  ggplot2::ggplot(df, ggplot2::aes(y = .data$sector, x = .data$beta_drop)) +
+  has_ci <- all(c("conf.low", "conf.high") %in% names(df)) &&
+            any(is.finite(df$conf.low) & is.finite(df$conf.high))
+  sub <- sprintf("dashed line = full estimate (%.3f)", bh)
+  if (has_ci)
+    sub <- sprintf("%s;  bars = %.0f%% CI (%s)", sub,
+                   100 * (attr(x, "level") %||% 0.95),
+                   toupper(attr(x, "se_method") %||% ""))
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(y = .data$sector, x = .data$beta_drop)) +
+    ggplot2::geom_vline(xintercept = 0, colour = "grey45", linewidth = 0.5) +
     ggplot2::geom_vline(xintercept = bh, linetype = "dashed",
-                        colour = "grey40", linewidth = 0.4) +
+                        colour = "grey40", linewidth = 0.4)
+  if (has_ci)
+    p <- p + ggplot2::geom_errorbar(
+      data = df[is.finite(df$conf.low) & is.finite(df$conf.high), , drop = FALSE],
+      ggplot2::aes(xmin = .data$conf.low, xmax = .data$conf.high),
+      orientation = "y", width = 0.2, colour = "#2C6FBB", linewidth = 0.5)
+  p +
     ggplot2::geom_point(size = 2.6, colour = "#1B3A5B") +
+    ggplot2::expand_limits(x = 0) +    # always show 0 so distance from the null is legible
     ggplot2::labs(x = expression("Estimate with shock dropped" ~ (hat(beta)[-n])),
                   y = "Dropped shock",
                   title = title %||% "Leave-one-out sensitivity",
-                  subtitle = sprintf("dashed line = full estimate (%.3f)", bh)) +
+                  subtitle = sub) +
     .ssb_theme()
 }
 

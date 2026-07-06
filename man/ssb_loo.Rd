@@ -4,16 +4,32 @@
 \alias{ssb_loo}
 \title{Leave-one-sector-out sensitivity}
 \usage{
-ssb_loo(design, top = 5)
+ssb_loo(
+  design,
+  top = 5,
+  se = c("none", "iid", "ehw", "cluster", "akm", "akm0"),
+  level = 0.95
+)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
 \item{top}{Number of top-weight sectors to leave out in turn.}
+
+\item{se}{Standard-error method for a confidence interval on each
+leave-one-out estimate: `"none"` (default; point estimates only, the
+original behaviour) or one of `"iid"`, `"ehw"`, `"cluster"`, `"akm"`,
+`"akm0"` (each re-estimated on the reduced design via [ssb_estimate()]).
+With a CI you can read whether the estimate still excludes 0 after dropping
+the most influential shock; [ssb_plot_loo()] then draws the intervals.}
+
+\item{level}{Confidence level for the interval when `se` is not `"none"`.}
 }
 \value{
 A `data.frame` with the dropped `sector`, its `alpha`, and the
   `beta_drop` obtained without it (plus the full-sample `beta_hat` attribute).
+  When `se` is not `"none"` it also has `conf.low`/`conf.high` columns and
+  `se_method`/`level` attributes.
 }
 \description{
 Recomputes the overall estimate dropping each of the top sectors (by

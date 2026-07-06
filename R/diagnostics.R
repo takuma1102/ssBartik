@@ -44,10 +44,22 @@ print.ssb_shocks <- function(x, ...) {
 #'
 #' @param design An [ssb_design()] object.
 #' @param top Number of top-weight sectors to leave out in turn.
+#' @param se Standard-error method for a confidence interval on each
+#'   leave-one-out estimate: `"none"` (default; point estimates only, the
+#'   original behaviour) or one of `"iid"`, `"ehw"`, `"cluster"`, `"akm"`,
+#'   `"akm0"` (each re-estimated on the reduced design via [ssb_estimate()]).
+#'   With a CI you can read whether the estimate still excludes 0 after dropping
+#'   the most influential shock; [ssb_plot_loo()] then draws the intervals.
+#' @param level Confidence level for the interval when `se` is not `"none"`.
 #' @return A `data.frame` with the dropped `sector`, its `alpha`, and the
 #'   `beta_drop` obtained without it (plus the full-sample `beta_hat` attribute).
+#'   When `se` is not `"none"` it also has `conf.low`/`conf.high` columns and
+#'   `se_method`/`level` attributes.
 #' @export
-ssb_loo <- function(design, top = 5) {
+ssb_loo <- function(design, top = 5,
+                    se = c("none", "iid", "ehw", "cluster", "akm", "akm0"),
+                    level = 0.95) {
+  se  <- match.arg(se)
   rot <- ssb_rotemberg(design)
   bh  <- attr(rot, "beta_hat")
   w <- .ssb_w(design)
@@ -58,16 +70,25 @@ ssb_loo <- function(design, top = 5) {
     # incomplete shares, the sum-of-shares control tracks the reduced design
     # (consistent with ssb_drop_top); a no-op for complete designs.
     d2 <- .ssb_subset(design, cell != rot$sector[i])
-    C2 <- .ssb_C(d2)
-    rx <- .ssb_resid(design$data[[design$vars$x]], C2, w)
-    ry <- .ssb_resid(design$data[[design$vars$y]], C2, w)
-    rz <- .ssb_resid(d2$mat$z, C2, w)
-    b  <- .ssb_wip(rz, ry, w) / .ssb_wip(rz, rx, w)
-    data.frame(sector = rot$sector[i], alpha = rot$alpha[i], beta_drop = b,
-               stringsAsFactors = FALSE)
+    if (se == "none") {
+      C2 <- .ssb_C(d2)
+      rx <- .ssb_resid(design$data[[design$vars$x]], C2, w)
+      ry <- .ssb_resid(design$data[[design$vars$y]], C2, w)
+      rz <- .ssb_resid(d2$mat$z, C2, w)
+      b  <- .ssb_wip(rz, ry, w) / .ssb_wip(rz, rx, w)
+      data.frame(sector = rot$sector[i], alpha = rot$alpha[i], beta_drop = b,
+                 stringsAsFactors = FALSE)
+    } else {
+      e <- ssb_estimate(d2, methods = se, level = level)
+      data.frame(sector = rot$sector[i], alpha = rot$alpha[i],
+                 beta_drop = e$estimate[1],
+                 conf.low = e$conf.low[1], conf.high = e$conf.high[1],
+                 stringsAsFactors = FALSE)
+    }
   })
   out <- do.call(rbind, res)
   attr(out, "beta_hat") <- bh
+  if (se != "none") { attr(out, "se_method") <- se; attr(out, "level") <- level }
   class(out) <- c("ssb_loo", "data.frame")
   out
 }

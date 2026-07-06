@@ -238,11 +238,20 @@ plot.ssb_loo <- function(x, file = NULL, width = NULL, height = NULL,
                          res = 200, digits = 3, ...) {
   df <- data.frame(sector = as.character(x$sector), alpha = x$alpha,
                    beta = x$beta_drop, stringsAsFactors = FALSE)
-  fbh <- formatC(attr(x, "beta_hat"), format = "f", digits = digits)
-  .ssb_image_table(df,
-    headers = c("Sector", "Rotemberg weight", "Estimate without shock"),
-    align = c("l", "r", "r"), title = "Leave-one-out sensitivity",
-    subtitle = sprintf("Overall estimate = %s", fbh), note = NULL,
+  headers <- c("Sector", "Rotemberg weight", "Estimate without shock")
+  align   <- c("l", "r", "r")
+  sub     <- sprintf("Overall estimate = %s",
+                     formatC(attr(x, "beta_hat"), format = "f", digits = digits))
+  if (all(c("conf.low", "conf.high") %in% names(x))) {
+    fmt <- function(v) ifelse(is.na(v), "", formatC(v, format = "f", digits = digits))
+    df$ci <- ifelse(fmt(x$conf.low) == "" & fmt(x$conf.high) == "", "",
+                    sprintf("[%s, %s]", fmt(x$conf.low), fmt(x$conf.high)))
+    lev <- attr(x, "level") %||% 0.95
+    headers <- c(headers, sprintf("%.0f%% CI", 100 * lev)); align <- c(align, "r")
+    sub <- sprintf("%s;  %s CI", sub, toupper(attr(x, "se_method") %||% ""))
+  }
+  .ssb_image_table(df, headers = headers, align = align,
+    title = "Leave-one-out sensitivity", subtitle = sub, note = NULL,
     file = file, width = width, height = height, res = res, digits = digits)
 }
 
