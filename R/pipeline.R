@@ -86,7 +86,7 @@ ssb_pipeline <- function(design, covariates = NULL, pre_y = NULL,
 #' res
 #' \dontrun{
 #' autoplot(res)                       # headline Rotemberg figure
-#' autoplot(res$estimate)              # SE comparison
+#' autoplot(res$estimate)              # CI comparison
 #' }
 ssbartik <- function(data, shares, shocks,
                      y = "y", x = "x",

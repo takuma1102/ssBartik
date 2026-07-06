@@ -130,12 +130,13 @@ test_that("cluster and two-way are opt-in, not in the default panel", {
   expect_true(is.finite(tw$std.error[tw$method == "twoway"]))
 })
 
-test_that("ssb_plot_ci exists and ssb_plot_se is a deprecated alias", {
+test_that("ssb_plot_ci renders and the old ssb_plot_se name is gone", {
   skip_if_not_installed("ggplot2")
   sim <- ssb_simulate(n_loc = 80, n_sec = 8, seed = 32)
   d <- ssb_design(sim$data, sim$shares, sim$shocks, weights = "pop")
   est <- ssb_estimate(d, methods = c("iid", "ehw"))
   expect_s3_class(ssb_plot_ci(est), "ggplot")
-  expect_warning(p <- ssb_plot_se(est), "deprecated")
-  expect_s3_class(p, "ggplot")
+  # the deprecated alias was removed: it must not be exported
+  expect_false(exists("ssb_plot_se", where = asNamespace("ssBartik"),
+                      inherits = FALSE))
 })

@@ -2,12 +2,9 @@
 % Please edit documentation in R/plots.R
 \name{ssb_plot_ci}
 \alias{ssb_plot_ci}
-\alias{ssb_plot_se}
 \title{Plot the confidence-interval comparison}
 \usage{
 ssb_plot_ci(x, title = NULL, ...)
-
-ssb_plot_se(x, title = NULL, ...)
 }
 \arguments{
 \item{x}{An `ssb_estimate` object (from [ssb_estimate()]).}
@@ -26,8 +23,4 @@ visible --- the naive/EHW intervals are typically far too narrow relative to
 the exposure-robust AKM / AKM0 intervals. The comparison is of *intervals*:
 AKM0 is defined as an interval directly (and can be asymmetric), so it is the
 interval, not a standard error, that is the object of interest.
-}
-\details{
-`ssb_plot_se()` is a deprecated alias retained for backward
-  compatibility; use `ssb_plot_ci()`.
 }

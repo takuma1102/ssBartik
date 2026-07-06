@@ -114,15 +114,6 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
     .ssb_theme()
 }
 
-#' @rdname ssb_plot_ci
-#' @details `ssb_plot_se()` is a deprecated alias retained for backward
-#'   compatibility; use `ssb_plot_ci()`.
-#' @export
-ssb_plot_se <- function(x, title = NULL, ...) {
-  .Deprecated("ssb_plot_ci")
-  ssb_plot_ci(x, title = title, ...)
-}
-
 ## autoplot generics -----------------------------------------------------------
 
 #' @method autoplot ssb_rotemberg

@@ -20,7 +20,7 @@ argument (`exogenous = "share"` or `"shift"`), everything downstream follows fro
 <img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
 *This figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
 
-<img src="man/figures/README-se.png" alt="SE comparison" />
+<img src="man/figures/README-se.png" alt="CI comparison" />
 <img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
 
 ## Install
@@ -46,7 +46,7 @@ res <- ssbartik(df$data, df$shares, df$shocks,
 res                                        # printed estimate + diagnostics
 
 autoplot(res)                              # headline Rotemberg figure
-autoplot(res$estimate)                     # side-by-side SE comparison
+autoplot(res$estimate)                     # side-by-side CI comparison
 ```
 
 Or step through it explicitly:
@@ -55,9 +55,9 @@ Or step through it explicitly:
 d   <- ssb_design(df$data, df$shares, df$shocks,
                   controls = "w1", weights = "pop", exogenous = "share")
 rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
-est <- ssb_estimate(d)                     # naive / EHW / cluster / AKM / AKM0
+est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
 ssb_plot_rotemberg(rot)
-ssb_plot_se(est)
+ssb_plot_ci(est)
 ```
 
 ## The two routes
@@ -74,7 +74,7 @@ apply:
 | pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
 | robustness          | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
 | extra control       | — | sum-of-shares (auto, when incomplete) |
-| inference           | EHW / cluster / two-way / AKM / AKM0 | EHW / cluster / two-way / AKM / AKM0 |
+| inference           | EHW / AKM / AKM0 (cluster, two-way on request) | EHW / AKM / AKM0 (cluster, two-way on request) |
 
 
 ## Diagnostics at a glance
@@ -147,7 +147,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----------|---------|
-| `ssb_estimate()` | point estimate + naive/EHW/cluster/two-way/AKM/AKM0 SEs (+ `format()` paper table) |
+| `ssb_estimate()` | point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ `format()` paper table) |
 | `ssb_aggregate()` / `ssb_shock_iv()` | shock-level aggregation and shock-level IV |
 | `ssb_equivalence()` | location-level ↔ shock-level IV equivalence check |
 
@@ -169,7 +169,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----------|---------|
-| `ssb_plot_rotemberg()` / `ssb_plot_se()` | Rotemberg bubble chart / SE comparison |
+| `ssb_plot_rotemberg()` / `ssb_plot_ci()` | Rotemberg bubble chart / confidence-interval comparison |
 | `ssb_plot_loo()` / `ssb_plot_ri()` | leave-one-out sensitivity / randomization-inference null |
 | `ssb_plot_overid()` / `ssb_plot_shocks()` | just-identified estimate dispersion / exposure Lorenz curve |
 | `autoplot()` | \pkg{ggplot2} method for any of the figures above |
@@ -180,10 +180,12 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 > weights as blue open circles and negative as amber open diamonds, with the
 > overall estimate marked by the dashed line.
 
-> **Note 2** `ssb_plot_se()` puts the point estimate next to every SE method's interval, with
+> **Note 2** `ssb_plot_ci()` puts the point estimate next to every method's interval, with
 > the axis always including the null at 0, so both the practical cost of the
 > exposure-robust correction *and* each method's verdict on significance are
-> immediate. (In this example the naive/EHW interval excludes 0 while AKM0 does
+> immediate. The comparison is of *intervals*: AKM0 is defined directly as a
+> (possibly asymmetric) interval, so it is the interval — not a standard error —
+> that matters. (In this example the naive/EHW interval excludes 0 while AKM0 does
 > not.)
 
 ## Status

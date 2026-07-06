@@ -93,6 +93,6 @@ res <- ssbartik(dat, shares, shocks, exogenous = "share")
 res
 \dontrun{
 autoplot(res)                       # headline Rotemberg figure
-autoplot(res$estimate)              # SE comparison
+autoplot(res$estimate)              # CI comparison
 }
 }
