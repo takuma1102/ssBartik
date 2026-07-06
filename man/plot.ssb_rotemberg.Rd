@@ -12,6 +12,7 @@
   res = 200,
   n = 6,
   digits = 3,
+  note = .ssb_rot_note(),
   ...
 )
 }
@@ -28,6 +29,10 @@
 \item{n}{Number of top-weight shocks to include.}
 
 \item{digits}{Decimal places for the estimates and weights.}
+
+\item{note}{Footnote shown left-aligned below the table (an italic "Note:"
+label is prepended). Defaults to a short definition of the columns; pass
+`NULL` to omit it, or a custom string.}
 
 \item{...}{Unused.}
 }
