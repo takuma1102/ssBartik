@@ -209,12 +209,24 @@ format.ssb_rotemberg <- function(x, output = c("latex", "markdown"),
   cells <- list(d$sector, d$alpha, d$beta, d$F, d$g)
   cw <- vapply(seq_along(cells), function(j)
     max(nchar(head_plain[j]), max(nchar(cells[[j]]), 1L)) + 2L, integer(1))
-  if (is.null(width))  width  <- max(5.5, 0.092 * sum(cw) + 1)
+  auto_w <- is.null(width)
+  if (auto_w) width <- max(5.5, 0.092 * sum(cw) + 1)
   note_lines <- character(0)
   if (!is.null(note) && nzchar(note)) {
-    cpl <- 15                             # ~characters per inch at the note size
-    wrap_chars <- max(30L, floor((width * 0.92) * cpl) - 8L)
-    note_lines <- strwrap(note, width = wrap_chars)
+    # honour explicit line breaks only -- do NOT auto-wrap (keep it on one line)
+    note_lines <- unlist(strsplit(note, "\n", fixed = TRUE))
+    note_lines <- note_lines[nzchar(trimws(note_lines))]
+    # if the note is wider than the columns, widen the table so it still fits
+    if (auto_w) {
+      nw <- tryCatch({
+        tf <- tempfile(fileext = ".pdf"); grDevices::pdf(tf, width = 30, height = 3)
+        w <- max(vapply(note_lines, function(L) grid::convertWidth(grid::grobWidth(
+          grid::textGrob(L, gp = grid::gpar(fontsize = 8.5, fontfamily = "serif"))),
+          "inches", valueOnly = TRUE), numeric(1)))
+        grDevices::dev.off(); unlink(tf); w
+      }, error = function(e) max(nchar(note_lines)) * 0.055)
+      width <- max(width, (0.34 + nw + 0.25) / 0.92)
+    }
   }
   if (is.null(height))
     height <- .ssb_rot_layout(d$n, length(note_lines))$content_h + 0.22
@@ -268,7 +280,4 @@ plot.ssb_rotemberg <- function(x, file = NULL, width = NULL, height = NULL,
 # Default table note explaining the columns. Pass note = NULL to omit it, or a
 # custom string; the italic "Note:" label is added by the renderer.
 .ssb_rot_note <- function()
-  paste0("alpha is the Rotemberg weight (how much the overall estimate depends ",
-         "on each shock; weights sum to one). beta is the just-identified ",
-         "estimate from that shock alone; F is its first-stage F; g is the ",
-         "shock. Shocks are ordered by |alpha|.")
+  "alpha = Rotemberg weight; beta = just-identified estimate; F = first-stage F; g = shock."
