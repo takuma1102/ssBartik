@@ -41,6 +41,16 @@ table](reference/figures/weight_summary.png)
 remotes::install_github("takuma1102/ssBartik")
 ```
 
+You can also install through R-universe.
+
+``` r
+
+install.packages(
+  "ssBartik",
+  repos = c("https://takuma1102.r-universe.dev", getOption("repos"))
+)
+```
+
 `ShiftShareSE` by Prof. Michal Kolesár (for AKM/AKM0 inference) is
 optional and used when installed.
 
