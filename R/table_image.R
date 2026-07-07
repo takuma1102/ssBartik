@@ -180,9 +180,7 @@ plot.ssb_estimate <- function(x, file = NULL, width = NULL, height = NULL,
   plac <- attr(x, "placebo")
   note <- NULL
   if (!is.null(plac))
-    note <- sprintf(paste0("Placebo: the full IV re-estimated with '%s' as the ",
-                           "outcome, which should be unaffected; an estimate near ",
-                           "0 supports the design."), plac)
+    note <- "Full IV re-estimated with a placebo outcome, which should be unaffected."
   if (disj) {
     dn <- paste0("Some confidence sets are unbounded or disjoint (weak ",
                  "instrument); shown as the complement of an interval.")

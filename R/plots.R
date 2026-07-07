@@ -107,7 +107,8 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
             paste(lab[bad], collapse = ", "))
   else NULL
   plac <- attr(x, "placebo")
-  psub <- if (!is.null(plac)) sprintf("Placebo outcome '%s' (should be ~0)", plac) else NULL
+  psub <- if (!is.null(plac))
+    "Full IV re-estimated with a placebo outcome, which should be unaffected" else NULL
   parts <- c(psub, flag)
   sub <- if (length(parts)) paste(parts, collapse = ";  ") else NULL
 
