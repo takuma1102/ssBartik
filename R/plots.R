@@ -158,7 +158,7 @@ ssb_plot_loo <- function(x, title = NULL, ...) {
   df$sector <- factor(df$sector, levels = rev(df$sector))
   has_ci <- all(c("conf.low", "conf.high") %in% names(df)) &&
             any(is.finite(df$conf.low) & is.finite(df$conf.high))
-  sub <- sprintf("dashed line = full estimate (%.3f)", bh)
+  sub <- sprintf("Dashed line = overall estimate (%.3f)", bh)
   if (has_ci)
     sub <- sprintf("%s;  bars = %.0f%% CI (%s)", sub,
                    100 * (attr(x, "level") %||% 0.95),
@@ -177,7 +177,7 @@ ssb_plot_loo <- function(x, title = NULL, ...) {
     ggplot2::geom_point(size = 2.6, colour = "#1B3A5B") +
     ggplot2::expand_limits(x = 0) +    # always show 0 so distance from the null is legible
     ggplot2::labs(x = expression("Estimate with shock dropped" ~ (hat(beta)[-n])),
-                  y = "Dropped shock",
+                  y = "Dropped shock (sector number)",
                   title = title %||% "Leave-one-out sensitivity",
                   subtitle = sub) +
     .ssb_theme()
@@ -211,7 +211,7 @@ ssb_plot_ri <- function(x, bins = 30, title = NULL, ...) {
   keep <- is.finite(x$perm) & x$perm >= xr[1] & x$perm <= xr[2]
   ntrim <- sum(!keep)
   df <- data.frame(perm = x$perm[keep])
-  sub <- sprintf("observed = %.3f;  RI p = %.3f  (%d permutations%s)",
+  sub <- sprintf("Observed = %.3f;  RI p = %.3f  (%d permutations%s)",
                  obs, x$p_value, x$R,
                  if (ntrim > 0) sprintf("; %d tail draws off-axis", ntrim) else "")
   ggplot2::ggplot(df, ggplot2::aes(x = .data$perm)) +
@@ -309,7 +309,7 @@ ssb_plot_shocks <- function(x, title = NULL, ...) {
     ggplot2::labs(x = "Cumulative share of shocks",
                   y = "Cumulative share of exposure",
                   title = title %||% "Exposure concentration (Lorenz curve)",
-                  subtitle = sprintf("%d shocks; effective = %.1f (HHI %.3f)",
+                  subtitle = sprintf("Shocks = %d;  effective = %.1f (HHI %.3f)",
                                      x$n_shocks, x$effective_shocks, x$hhi)) +
     .ssb_theme()
 }
