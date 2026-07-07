@@ -36,6 +36,7 @@ identification with formula instruments: a review", Econometrics Journal
 Useful links:
 \itemize{
   \item \url{https://github.com/takuma1102/ssBartik}
+  \item \url{https://takuma1102.github.io/ssBartik/}
   \item Report bugs at \url{https://github.com/takuma1102/ssBartik/issues}
 }
 

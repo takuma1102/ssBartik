@@ -107,10 +107,18 @@ reference:
   - title: "Publication-ready tables"
     desc: >
       Render any result table as a booktabs-style PNG/PDF image
-      (`plot(x, file = ...)`), or as LaTeX / Markdown source via `format()`.
+      (`plot(x, file = ...)`), or as LaTeX / Markdown source via the `format()` methods below.
     contents:
       - ssb_table_image
       - plot.ssb_rotemberg
+      - format.ssb_estimate
+      - format.ssb_rotemberg
+      - format.ssb_weight_summary
+      - format.ssb_overid
+      - format.ssb_loo
+      - format.ssb_drop_top
+      - format.ssb_shocks
+      - format.ssb_shock_balance
 
   - title: "Package overview"
     contents:
