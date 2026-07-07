@@ -1,4 +1,7 @@
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
 ^ssBartik_local_check\.R$
 ^.*\.Rproj$
 ^\.Rproj\.user$

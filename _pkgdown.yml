@@ -1,0 +1,117 @@
+url: https://takuma1102.github.io/ssBartik/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#08519C"
+    base_font: {google: "Inter"}
+    heading_font: {google: "Inter"}
+    code_font: {google: "JetBrains Mono"}
+
+navbar:
+  type: default
+  structure:
+    left:  [reference, news]
+    right: [search, github]
+  components:
+    reference:
+      text: Reference
+      href: reference/index.html
+    github:
+      icon: fa-github fa-lg
+      href: https://github.com/takuma1102/ssBartik
+      aria-label: GitHub
+
+home:
+  links:
+    - text: Source code
+      href: https://github.com/takuma1102/ssBartik
+    - text: Report a bug or request a feature
+      href: https://github.com/takuma1102/ssBartik/issues
+
+reference:
+  - title: "One-call pipeline"
+    desc: >
+      Build the dataset, run the whole workflow, and return the interval
+      comparison, the effective first-stage F, and every diagnostic in a
+      single call.
+    contents:
+      - ssbartik
+      - ssb_pipeline
+
+  - title: "Design"
+    desc: >
+      Assemble shares, shocks and controls into one object and choose the
+      identification route (`exogenous = "share"` or `"shift"`); everything
+      downstream reads from it.
+    contents:
+      - ssb_design
+
+  - title: "Estimation and exposure-robust inference"
+    desc: >
+      Point estimates with IID / EHW / cluster / two-way standard errors and
+      the exposure-robust AKM and AKM0 confidence sets (via 'ShiftShareSE'),
+      plus first-stage strength and the location/shock-level equivalence check.
+    contents:
+      - ssb_estimate
+      - ssb_first_stage
+      - ssb_equivalence
+
+  - title: "Exogenous-shares diagnostics (Rotemberg)"
+    desc: >
+      Which shocks carry identification, how concentrated exposure is, and
+      whether the shares look exogenous --- following Goldsmith-Pinkham,
+      Sorkin and Swift (2020).
+    contents:
+      - ssb_rotemberg
+      - ssb_weight_summary
+      - ssb_share_balance
+
+  - title: "Exogenous-shifts diagnostics"
+    desc: >
+      Shock-level summaries, correlation balance across shocks, the
+      shock-level IV, and the over-identification test across single-share
+      instruments.
+    contents:
+      - ssb_shock_summary
+      - ssb_shock_balance
+      - ssb_shock_iv
+      - ssb_overid
+
+  - title: "Robustness and validity checks"
+    desc: >
+      Leave-one-out and drop-top sensitivity, pre-trend and placebo tests,
+      randomization inference, recentering, and shock aggregation.
+    contents:
+      - ssb_loo
+      - ssb_drop_top
+      - ssb_pretrend
+      - ssb_placebo
+      - ssb_ri
+      - ssb_recenter
+      - ssb_aggregate
+
+  - title: "Plots"
+    desc: >
+      ggplot2 figures for the interval comparison, leave-one-out sensitivity,
+      dispersion of just-identified estimates, exposure concentration, and the
+      randomization-inference null.
+    contents:
+      - ssb_plot_ci
+      - ssb_plot_loo
+      - ssb_plot_overid
+      - ssb_plot_shocks
+      - ssb_plot_ri
+      - ssb_plot_rotemberg
+
+  - title: "Publication-ready tables"
+    desc: >
+      Render any result table as a booktabs-style PNG/PDF image
+      (`plot(x, file = ...)`), or as LaTeX / Markdown source via `format()`.
+    contents:
+      - ssb_table_image
+      - plot.ssb_rotemberg
+
+  - title: "Package overview"
+    contents:
+      - ssBartik-package
