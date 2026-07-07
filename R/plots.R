@@ -102,10 +102,14 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
   # them wrong, so plot only the point and flag them in the subtitle.
   bad <- (!is.finite(df$conf.low) | !is.finite(df$conf.high) |
             df$conf.low > df$conf.high)
-  sub <- if (any(bad))
+  flag <- if (any(bad))
     sprintf("%s: confidence set unbounded or disjoint (weak instrument); see the printed table",
             paste(lab[bad], collapse = ", "))
   else NULL
+  plac <- attr(x, "placebo")
+  psub <- if (!is.null(plac)) sprintf("Placebo outcome '%s' (should be ~0)", plac) else NULL
+  parts <- c(psub, flag)
+  sub <- if (length(parts)) paste(parts, collapse = ";  ") else NULL
 
   ggplot2::ggplot(df, ggplot2::aes(y = .data$method, x = .data$estimate)) +
     ggplot2::geom_vline(xintercept = 0, colour = "grey45", linewidth = 0.5) +
@@ -120,7 +124,8 @@ ssb_plot_ci <- function(x, title = NULL, ...) {
     ggplot2::expand_limits(x = 0) +      # always show the null so significance is legible
     ggplot2::labs(x = sprintf("Estimate (%.0f%% CI)", 100 * lev),
                   y = NULL,
-                  title = title %||% "Confidence-interval comparison",
+                  title = title %||% (if (is.null(plac)) "Confidence-interval comparison"
+                                      else "Placebo test"),
                   subtitle = sub) +
     .ssb_theme()
 }

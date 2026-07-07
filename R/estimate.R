@@ -191,8 +191,12 @@ print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
                       caption = caption, label = label), sep = "\n")
     return(invisible(x))
   }
-  cat("<ssBartik estimate>\n")
+  plac <- attr(x, "placebo")
+  cat(if (is.null(plac)) "<ssBartik estimate>\n" else "<ssBartik placebo test>\n")
   cat(sprintf("  first-stage F : %.1f\n", attr(x, "fstat")))
+  if (!is.null(plac))
+    cat(sprintf("  placebo outcome: %s (a near-zero estimate supports the design)\n",
+                plac))
   tab <- x[c("method", "estimate", "std.error", "conf.low", "conf.high", "note")]
   tab$method <- .ssb_se_label(tab$method)
   class(tab) <- "data.frame"           # avoid dispatching to format.ssb_estimate
@@ -246,17 +250,27 @@ print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
     hdr  <- c("Method", "Estimate", "Std. error", sprintf("%.0f%% CI", 100 * lev))
     algn <- c(":--", "--:", "--:", "--:")
     rows <- sprintf("| %s | %s | %s | %s |", meth, est, se, cis)
-    note <- if (is.null(fst) || is.na(fst)) character(0)
-            else sprintf("*First-stage F = %.1f.*", fst)
+    plac  <- attr(x, "placebo")
+    pnote <- if (!is.null(plac))
+      sprintf(paste0("Placebo test: full IV re-estimated with `%s` as the outcome ",
+                     "(should be ~0); a near-zero estimate supports the design."), plac)
+    fnote <- if (is.null(fst) || is.na(fst)) NULL else sprintf("First-stage F = %.1f.", fst)
+    parts <- c(pnote, fnote)
+    note  <- if (length(parts)) paste0("*", paste(parts, collapse = " "), "*") else character(0)
     c(paste0("| ", paste(hdr,  collapse = " | "), " |"),
       paste0("| ", paste(algn, collapse = " | "), " |"),
       rows, if (length(note)) c("", note))
   } else {
-    if (is.null(caption))
-      caption <- if (is.null(fst) || is.na(fst))
-        "Shift-share estimate and standard errors."
-      else sprintf(paste0("Shift-share estimate and standard errors ",
-                          "(first-stage $F = %.1f$)."), fst)
+    if (is.null(caption)) {
+      plac  <- attr(x, "placebo")
+      fpart <- if (is.null(fst) || is.na(fst)) "" else
+        sprintf(" (first-stage $F = %.1f$)", fst)
+      caption <- if (is.null(plac))
+        sprintf("Shift-share estimate and standard errors%s.", fpart)
+      else sprintf(paste0("Placebo test: full IV re-estimated with \\texttt{%s} as ",
+                          "the outcome%s; a near-zero estimate supports the design."),
+                   gsub("_", "\\\\_", plac), fpart)
+    }
     hdr  <- c("Method", "Estimate", "Std. error", sprintf("%.0f\\%% CI", 100 * lev))
     rows <- sprintf("%s & %s & %s & %s \\\\", meth, est, se, cis)
     c("\\begin{table}[!ht]", "\\centering",

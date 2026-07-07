@@ -177,13 +177,22 @@ plot.ssb_estimate <- function(x, file = NULL, width = NULL, height = NULL,
   disj <- any(is.finite(d$conf.low) & is.finite(d$conf.high) &
                 d$conf.low > d$conf.high) ||
           any(!is.finite(d$conf.low) | !is.finite(d$conf.high))
-  note <- if (disj)
-    paste0("Some confidence sets are unbounded or disjoint (weak instrument); ",
-           "shown as the complement of an interval.") else NULL
+  plac <- attr(x, "placebo")
+  note <- NULL
+  if (!is.null(plac))
+    note <- sprintf(paste0("Placebo: the full IV re-estimated with '%s' as the ",
+                           "outcome, which should be unaffected; an estimate near ",
+                           "0 supports the design."), plac)
+  if (disj) {
+    dn <- paste0("Some confidence sets are unbounded or disjoint (weak ",
+                 "instrument); shown as the complement of an interval.")
+    note <- if (is.null(note)) dn else paste(note, dn)
+  }
   sub <- if (is.null(fst) || is.na(fst)) "" else sprintf("First-stage F = %.1f", fst)
   .ssb_image_table(df,
     headers = c("Method", "Estimate", "Std. error", sprintf("%.0f%% CI", 100 * lev)),
-    align = c("l", "r", "r", "r"), title = "Shift-share estimate",
+    align = c("l", "r", "r", "r"),
+    title = if (is.null(plac)) "Shift-share estimate" else "Placebo test",
     subtitle = sub, note = note, file = file, width = width, height = height,
     res = res, digits = digits)
 }
