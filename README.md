@@ -32,6 +32,19 @@ remotes::install_github("takuma1102/ssBartik")
 `ShiftShareSE` by Prof. Michal Kolesár (for AKM/AKM0 inference) is
 optional and used when installed.
 
+## One-call pipeline
+
+```r
+all_analysis <- ssbartik(adta = data, shares = shares, shocks = shocks, controls = "w1", weights = "pop",
+                exogenous = "share",     # or "shift"
+                covariates = "w1",
+                pre_y = "ypre", placebo_y = "yplac")
+print(all_analysis)
+```
+
+This function produces CI comparison between AKM/AKM0 and conventional methods, calculation of effective F, overidentification test,
+Rotemberg weights, pre-trend test, placebo analysis, and LOO analysis.
+
 ## Quick start
 
 ```r
@@ -106,7 +119,11 @@ ssb_shock_balance(d, shock_covariates = sc)  # shocks vs. pre-determined charact
 ssb_pretrend(d, pre_y = "y_pre")             # does exposure predict pre-trends?
 ssb_placebo(d, placebo_y = "y_plac")         # full IV on an outcome that shouldn't move
 ssb_ri(d, R = 999, block = "grp")            # AR-style randomization inference (shocks permuted within blocks)
+```
+<img src="man/figures/random_inf.png" alt="Randomization inference" />
 
+
+```r
 # sensitivity to influential shocks
 ws<- ssb_weight_summary(d, covariates = "w1")     # who carries the weight? (α vs. βₖ, F, covariates)
 plot(ws)
@@ -130,8 +147,6 @@ corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`)
 |----------|---------|
 | `ssb_design()` | define a shift-share design (entry point) |
 | `ssbartik()` / `ssb_pipeline()` | one-call pipeline (from raw data / from an existing design) |
-
-<img src="man/figures/ci_table.png" alt="CI comparison" />
 
 
 **Diagnose**
@@ -165,6 +180,11 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | function | purpose |
 |----------|---------|
 | `ssb_estimate()` | point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ `format()` paper table) |
+<img src="man/figures/ci_patterns.png" alt="CI comparison plot" />
+<img src="man/figures/ci_table.png" alt="CI comparison table" />
+
+| function | purpose |
+|----------|---------|
 | `ssb_aggregate()` / `ssb_shock_iv()` | shock-level aggregation and shock-level IV |
 | `ssb_equivalence()` | location-level ↔ shock-level IV equivalence check |
 
@@ -184,6 +204,11 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | `ssb_placebo()` | placebo-outcome test (full IV on an outcome that should not move) |
 | `ssb_ri()` | randomization inference (Anderson-Rubin-style placebo shocks) |
 | `ssb_loo()` | leave-one-sector-out sensitivity |
+
+<img src="man/figures/loo_plot.png" alt="LOO Plot" />
+
+| function | purpose |
+|----------|---------|
 | `ssb_drop_top()` | re-estimate after dropping the top-weight shocks together |
 | `ssb_recenter()` | recentering — demean or block-wise permute (Borusyak & Hull) |
 
@@ -194,6 +219,10 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | `ssb_plot_rotemberg()` / `ssb_plot_ci()` | Rotemberg bubble chart / confidence-interval comparison |
 | `ssb_plot_loo()` / `ssb_plot_ri()` | leave-one-out sensitivity / randomization-inference null |
 | `ssb_plot_overid()` / `ssb_plot_shocks()` | just-identified estimate dispersion / exposure Lorenz curve |
+<img src="man/figures/lorenz.png" alt="Lorenz Plot" />
+
+| function | purpose |
+|----------|---------|
 | `autoplot()` | \pkg{ggplot2} method for any of the figures above |
 
 > **Note 1** `ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
