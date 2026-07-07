@@ -276,7 +276,7 @@ ssb_plot_overid <- function(x, level = 0.95, xlim = NULL, title = NULL, ...) {
     ggplot2::labs(x = expression("Just-identified estimate" ~ (hat(beta)[k])),
                   y = "Instrument (sector)",
                   title = title %||% "Overidentification: dispersion of estimates",
-                  subtitle = sprintf("Q = %.1f on %d df, p = %.3f;  dashed = weighted mean",
+                  subtitle = sprintf("Cochran's Q = %.1f on %d df, p = %.3f;  dashed = weighted mean",
                                      x$Q, x$df, x$p)) +
     .ssb_theme()
 }

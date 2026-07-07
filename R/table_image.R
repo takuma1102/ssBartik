@@ -226,9 +226,10 @@ plot.ssb_overid <- function(x, file = NULL, width = NULL, height = NULL,
     stringsAsFactors = FALSE)
   .ssb_image_table(df, headers = c("Statistic", "Value"), align = c("l", "r"),
     title = "Overidentification test", subtitle = "Cross-instrument homogeneity",
-    note = paste0("Small p rejects a common coefficient (exogeneity failure or ",
-                  "heterogeneity). The just-identified estimates are mutually ",
-                  "correlated, so the chi-square reference is a heuristic screen."),
+    note = paste0("Q = Cochran's Q. Small p rejects a common coefficient ",
+                  "(exogeneity failure or heterogeneity). The just-identified ",
+                  "estimates are mutually correlated, so the chi-square reference ",
+                  "is a heuristic screen."),
     file = file, width = width, height = height, res = res, digits = digits)
 }
 
