@@ -118,6 +118,11 @@ ssb_overid(d)                    # do the per-share estimates agree? (Cochran's 
 ssb_shock_balance(d, shock_covariates = sc)  # shocks vs. pre-determined characteristics
 ssb_pretrend(d, pre_y = "y_pre")             # does exposure predict pre-trends?
 ssb_placebo(d, placebo_y = "y_plac")         # full IV on an outcome that shouldn't move
+```
+
+<img src="man/figures/placebo.png" alt="Placebo analysis" />
+
+```r
 ssb_ri(d, R = 999, block = "grp")            # AR-style randomization inference (shocks permuted within blocks)
 ```
 <img src="man/figures/random_inf.png" alt="Randomization inference" />
