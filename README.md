@@ -16,12 +16,11 @@ argument (`exogenous = "share"` or `"shift"`), everything downstream follows fro
 ## Headline visualizations and tables
 
 `ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below demonstrate some of the package’s main outputs using sample datasets with either exogenous shares or exogenous shocks.
+*The first model figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
 
-<img src="man/figures/README-rotemberg.png" alt="Rotemberg weights plot" />
-*This figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
-
-<img src="man/figures/README-se.png" alt="CI comparison" />
-<img src="man/figures/Rweight_table.png" alt="Rotemberg weight table" />
+<img src="man/figures/rotem_plot.png" alt="Rotemberg weights plot" />
+<img src="man/figures/loo_plot.png" alt="LOO analysis" />
+<img src="man/figures/weight_summary.png" alt="Rotemberg weight table" />
 
 ## Install
 
@@ -55,10 +54,20 @@ Or step through it explicitly:
 d   <- ssb_design(df$data, df$shares, df$shocks,
                   controls = "w1", weights = "pop", exogenous = "share")
 rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
+plot(rot, n = 6)                           # see below
+```
+<img src="man/figures/weight_summary.png" alt="Rotemberg weight table" />
+
+
+```r
 est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
+```
+
+```r
 ssb_plot_rotemberg(rot)
 ssb_plot_ci(est)
 ```
+
 
 ## The two routes
 
@@ -99,7 +108,12 @@ ssb_placebo(d, placebo_y = "y_plac")         # full IV on an outcome that should
 ssb_ri(d, R = 999, block = "grp")            # AR-style randomization inference (shocks permuted within blocks)
 
 # sensitivity to influential shocks
-ssb_weight_summary(d, covariates = "w1")     # who carries the weight? (α vs. βₖ, F, covariates)
+ws<- ssb_weight_summary(d, covariates = "w1")     # who carries the weight? (α vs. βₖ, F, covariates)
+plot(ws)
+```
+<img src="man/figures/rotem_shares.png" alt="Rotemberg weight table" />
+
+```r
 ssb_drop_top(d, n = 5)                        # re-estimate without the top-weight shocks
 ssb_recenter(d, method = "permute", block = "grp")     # block-wise recentering (within-block mean shock)
 ```
@@ -116,6 +130,9 @@ corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`)
 |----------|---------|
 | `ssb_design()` | define a shift-share design (entry point) |
 | `ssbartik()` / `ssb_pipeline()` | one-call pipeline (from raw data / from an existing design) |
+
+<img src="man/figures/ci_table.png" alt="CI comparison" />
+
 
 **Diagnose**
 
@@ -156,6 +173,11 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | function | purpose |
 |----------|---------|
 | `ssb_overid()` | overidentification / cross-instrument homogeneity test |
+
+<img src="man/figures/overid.png" alt="Over-identification" />
+
+| function | purpose |
+|----------|---------|
 | `ssb_share_balance()` | share-vs-observables balance (share route) |
 | `ssb_shock_balance()` | shock-vs-characteristics balance (shift route) |
 | `ssb_pretrend()` | pre-trend test (reduced form of a pre-period outcome on the instrument) |
