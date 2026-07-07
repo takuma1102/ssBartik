@@ -1,4 +1,4 @@
-# ssBartik: R package for an end-to-end pipeline for shift-share (Bartik) IV designs
+# ssBartik: R package for an end-to-end pipeline for shift-share / Bartik IV designs
 
 [![R-CMD-check](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml)
