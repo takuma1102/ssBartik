@@ -1,6 +1,8 @@
 # ssBartik: R package for an end-to-end pipeline for shift-share (Bartik) IV designs
 
 [![R-CMD-check](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml)
+[![r-universe version](https://takuma1102.r-universe.dev/ssBartik/badges/version)](https://takuma1102.r-universe.dev/ssBartik)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
