@@ -4,19 +4,18 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Shift-share / Bartik IV analysis in R is currently spread across several excellent but single-purpose tools, each
+Shift-share / Bartik IV analysis in R is currently spread across several single-purpose tools, each
 of which has its own data conventions. `ssBartik` connects those steps
 into one consistent workflow: (a) construct variables → (b) diagnose → (c) estimate → (d) infer →
 (e) visualize, organized around the two identification routes of the modern
 literature (i.e., exogenous **shift** and exogenous **share** approaches).
 
 Once you pick the identification route with a single
-argument (`exogenous = "share"` or `"shift"`), everything downstream follows from variable construction to visualization.
+argument (`exogenous = "share"` or `"shift"`), everything downstream follows through simple functions.
 
 ## Headline visualizations and tables
 
-`ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below demonstrate some of the package’s main outputs using sample datasets with either exogenous shares or exogenous shocks.
-*The first model figure follows the Rotemberg-weight visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).*
+`ssBartik` turns estimation and diagnostic results into publication-ready figures and tables. The examples below demonstrate some of the package’s main outputs using sample datasets. The first model figure follows visualization in Goldsmith-Pinkham, Sorkin, and Swift (2020).
 
 <img src="man/figures/rotem_plot.png" alt="Rotemberg weights plot" />
 <img src="man/figures/loo_plot.png" alt="LOO analysis" />
@@ -34,53 +33,16 @@ optional and used when installed.
 
 ## One-call pipeline
 
-```r
-all_analysis <- ssbartik(adta = data, shares = shares, shocks = shocks, controls = "w1", weights = "pop",
-                exogenous = "share",     # or "shift"
-                covariates = "w1",
-                pre_y = "ypre", placebo_y = "yplac")
-print(all_analysis)
-```
-
-This function produces CI comparison between AKM/AKM0 and conventional methods, calculation of effective F, overidentification test,
-Rotemberg weights, pre-trend test, placebo analysis, and LOO analysis.
-
-## Quick start
+The `ssBartik` function builds the dataset for shift-share IV analysis, runs the full pipeline, and produces results regarding a CI comparison between AKM/AKM0 and conventional methods, a calculation of the effective F, an overidentification test, Rotemberg weights, a pre-trend test, a placebo analysis, and an LOO analysis.
 
 ```r
 library(ssBartik)
-
-# one call: build the design and run the full pipeline
-res <- ssbartik(df$data, df$shares, df$shocks,
-                controls = "w1", weights = "pop",
-                exogenous = "share",       # or "shift"; each analyst has to pick the right identification design
-                covariates = "w1")
-res                                        # printed estimate + diagnostics
-
-autoplot(res)                              # headline Rotemberg figure
-autoplot(res$estimate)                     # side-by-side CI comparison
+pipeline_analysis <- ssbartik(data = data, shares = shares, shocks = shocks, controls = "w1", weights = "pop",
+                exogenous = "share",     # or "shift" 
+                covariates = "w1",
+                pre_y = "ypre", placebo_y = "yplac")
+print(pipeline_analysis)                   # printed estimate + diagnostics
 ```
-
-Or step through it explicitly:
-
-```r
-d   <- ssb_design(df$data, df$shares, df$shocks,
-                  controls = "w1", weights = "pop", exogenous = "share")
-rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
-plot(rot, n = 6)                           # see below
-```
-<img src="man/figures/weight_summary.png" alt="Rotemberg weight table" />
-
-
-```r
-est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
-```
-
-```r
-ssb_plot_rotemberg(rot)
-ssb_plot_ci(est)
-```
-
 
 ## The two routes
 
@@ -99,21 +61,35 @@ apply:
 | inference           | EHW / AKM / AKM0 (cluster, two-way on request) | EHW / AKM / AKM0 (cluster, two-way on request) |
 
 
-## Diagnostics at a glance
+## Step-by-step analysis
 
-With a design in hand, each credibility check is a single call. You supply the
-pre-period / placebo outcomes and the shock-level characteristics; everything
-else follows from the design.
+With a design in hand, each credibility check is finished through a single call.
 
 ```r
-d <- ssb_design(df$data, df$shares, df$shocks,
-                controls = "w1", weights = "pop", exogenous = "shift")
+d   <- ssb_design(df$data, df$shares, df$shocks,
+                  controls = "w1", weights = "pop", exogenous = "share")
+rot <- ssb_rotemberg(d)                    # Rotemberg-weight decomposition
+plot(rot, n = 6)                           # see below
+```
+<img src="man/figures/weight_summary.png" alt="Rotemberg weight table" />
 
+
+```r
+est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
+ssb_plot_ci(est)
+```
+<img src="man/figures/ci_patterns.png" alt="CI comparison plot" />
+
+
+```r
 # instrument strength & internal consistency
 ssb_first_stage(d)               # standard robust F + exposure-robust "effective" F
 ssb_equivalence(d)               # location-level SSIV == shock-level IV (sanity check)
 ssb_overid(d)                    # do the per-share estimates agree? (Cochran's Q)
+```
+<img src="man/figures/overid.png" alt="Over-identification" />
 
+```r
 # identifying-assumption checks
 ssb_shock_balance(d, shock_covariates = sc)  # shocks vs. pre-determined characteristics
 ssb_pretrend(d, pre_y = "y_pre")             # does exposure predict pre-trends?
@@ -153,7 +129,6 @@ corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`)
 | `ssb_design()` | define a shift-share design (entry point) |
 | `ssbartik()` / `ssb_pipeline()` | one-call pipeline (from raw data / from an existing design) |
 
-
 **Diagnose**
 
 | function | purpose |
@@ -185,7 +160,6 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | function | purpose |
 |----------|---------|
 | `ssb_estimate()` | point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ `format()` paper table) |
-<img src="man/figures/ci_patterns.png" alt="CI comparison plot" />
 <img src="man/figures/ci_table.png" alt="CI comparison table" />
 
 | function | purpose |
@@ -198,11 +172,6 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | function | purpose |
 |----------|---------|
 | `ssb_overid()` | overidentification / cross-instrument homogeneity test |
-
-<img src="man/figures/overid.png" alt="Over-identification" />
-
-| function | purpose |
-|----------|---------|
 | `ssb_share_balance()` | share-vs-observables balance (share route) |
 | `ssb_shock_balance()` | shock-vs-characteristics balance (shift route) |
 | `ssb_pretrend()` | pre-trend test (reduced form of a pre-period outcome on the instrument) |
@@ -230,13 +199,13 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 |----------|---------|
 | `autoplot()` | \pkg{ggplot2} method for any of the figures above |
 
-> **Note 1** `ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
+> **Note 1**: `ssb_plot_rotemberg()` reproduces the canonical Goldsmith-Pinkham–Sorkin–Swift
 > diagnostic: each sector's just-identified estimate against its first-stage
 > F-statistic, bubble area proportional to the absolute Rotemberg weight, positive
 > weights as blue open circles and negative as amber open diamonds, with the
 > overall estimate marked by the dashed line.
 
-> **Note 2** `ssb_plot_ci()` puts the point estimate next to every method's interval, with
+> **Note 2**: `ssb_plot_ci()` puts the point estimate next to every method's interval, with
 > the axis always including the null at 0, so both the practical cost of the
 > exposure-robust correction *and* each method's verdict on significance are
 > immediate. The comparison is of *intervals*: AKM0 is defined directly as a
