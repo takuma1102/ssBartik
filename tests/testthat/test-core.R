@@ -114,7 +114,7 @@ test_that("EHW SE grows when controls consume degrees of freedom", {
   expect_gt(se, se_old)
 })
 
-test_that("cluster and two-way are opt-in, not in the default panel", {
+test_that("cluster is in the default panel; iid and two-way are opt-in", {
   sim <- ssb_simulate(n_loc = 120, n_sec = 10, seed = 31)
   sim$data$grp  <- rep(1:6, length.out = nrow(sim$data))
   sim$data$grp2 <- rep(1:5, length.out = nrow(sim$data))
@@ -122,8 +122,10 @@ test_that("cluster and two-way are opt-in, not in the default panel", {
                   weights = "pop", cluster = "grp", exogenous = "shift")
 
   def <- ssb_estimate(d)                       # default methods
-  expect_false(any(c("cluster", "twoway") %in% def$method))
-  expect_setequal(def$method, c("iid", "ehw", "akm", "akm0"))
+  expect_setequal(def$method, c("ehw", "cluster", "akm", "akm0"))
+  expect_false(any(c("iid", "twoway") %in% def$method))
+  # design here has a cluster var, so the default cluster row is finite
+  expect_true(is.finite(def$std.error[def$method == "cluster"]))
 
   # available when explicitly requested
   with_cl <- ssb_estimate(d, methods = c("ehw", "cluster"))

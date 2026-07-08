@@ -68,7 +68,7 @@ apply:
 | pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
 | robustness          | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
 | extra control       | — | sum-of-shares (auto, when incomplete) |
-| inference           | EHW / AKM / AKM0 (cluster, two-way on request) | EHW / AKM / AKM0 (cluster, two-way on request) |
+| inference           | EHW / cluster / AKM / AKM0 (iid, two-way on request) | EHW / cluster / AKM / AKM0 (iid, two-way on request) |
 
 
 ## Step-by-step analysis
@@ -85,7 +85,7 @@ plot(rot, n = 6)                           # see below
 
 
 ```r
-est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
+est <- ssb_estimate(d)                     # EHW / cluster / AKM / AKM0 (add iid/two-way on request)
 ssb_plot_ci(est)
 ```
 <img src="man/figures/ci_patterns.png" alt="CI comparison plot" />
@@ -143,7 +143,7 @@ corresponding arguments (`pre_y`, `placebo_y`, `shock_covariates`, `covariates`)
 
 | function | purpose |
 |----------|---------|
-| `ssb_rotemberg()` | Rotemberg-weight decomposition (+ `format()`/`plot()` paper table) |
+| `ssb_rotemberg()` | Rotemberg-weight decomposition (+ `format()`/`plot()` paper table) (see GPSS) |
 | `ssb_weight_summary()` | Rotemberg-weight summary + correlations (α vs. βₖ, F, covariates) |
 | `ssb_shock_summary()` | effective number of shocks, exposure concentration |
 | `ssb_first_stage()` | first-stage strength: standard & exposure-robust (effective) F |
@@ -169,7 +169,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----------|---------|
-| `ssb_estimate()` | point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ `format()` paper table) |
+| `ssb_estimate()` | point estimate + CI: EHW/cluster/AKM/AKM0 by default, iid/two-way on request (+ `format()` paper table) (see AKM)|
 <img src="man/figures/ci_table.png" alt="CI comparison table" />
 
 | function | purpose |
@@ -185,9 +185,9 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | `ssb_share_balance()` | share-vs-observables balance (share route) |
 | `ssb_shock_balance()` | shock-vs-characteristics balance (shift route) |
 | `ssb_pretrend()` | pre-trend test (reduced form of a pre-period outcome on the instrument) |
-| `ssb_placebo()` | placebo-outcome test (full IV on an outcome that should not move) |
+| `ssb_placebo()` | placebo-outcome test (full IV on an outcome that should not move)|
 | `ssb_ri()` | randomization inference (Anderson-Rubin-style placebo shocks) |
-| `ssb_loo()` | leave-one-sector-out sensitivity |
+| `ssb_loo()` | leave-one-sector-out sensitivity (see AKM)|
 
 <img src="man/figures/loo_plot.png" alt="LOO Plot" />
 

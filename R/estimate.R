@@ -27,16 +27,19 @@
 #' `conf.low > conf.high`; `ssb_estimate()` flags both cases in the `note`
 #' column and the table/plot methods render them accordingly.
 #'
-#' `cluster` and `twoway` are **not** in the default panel --- they are usually
-#' a secondary concern next to the exposure-robust AKM / AKM0 intervals. Request
-#' them explicitly via `methods` when wanted (e.g.
-#' `methods = c("iid", "ehw", "akm", "akm0", "cluster")`, adding `"twoway"` and
-#' `cluster2` for two-way clustering).
+#' The default panel is `ehw` / `cluster` / `akm` / `akm0`: two classical
+#' robust SEs (heteroskedasticity- and cluster-robust) shown next to the two
+#' exposure-robust AKM / AKM0 intervals. `iid` (homoskedastic) and `twoway` are
+#' not in the default; request them explicitly via `methods` when wanted (e.g.
+#' `methods = c("iid", "ehw", "cluster", "twoway", "akm", "akm0")`, adding
+#' `cluster2` for two-way clustering). The `cluster` row needs a `cluster`
+#' column in the design (set via [ssb_design()]); without one it is reported as
+#' `NA` with a note rather than an error.
 #'
 #' @param design An [ssb_design()] object.
-#' @param methods Which methods to report. Defaults to the exposure-robust panel
-#'   (`iid`, `ehw`, `akm`, `akm0`); add `"cluster"` and/or `"twoway"` for
-#'   cluster-robust intervals.
+#' @param methods Which methods to report. Defaults to `ehw`, `cluster`, `akm`,
+#'   `akm0`; add `"iid"` (homoskedastic) and/or `"twoway"` for two-way
+#'   clustering. `cluster` needs the design's `cluster` column (else `NA`).
 #' @param level Confidence level for the reported intervals.
 #' @param cluster2 Optional second clustering column in `data` for the
 #'   `"twoway"` method (paired with the design's `cluster`).
@@ -53,7 +56,7 @@
 #'   first-stage F as an attribute. Plot with [ssb_plot_ci()].
 #' @export
 ssb_estimate <- function(design,
-                         methods = c("iid", "ehw", "akm", "akm0"),
+                         methods = c("ehw", "cluster", "akm", "akm0"),
                          level = 0.95, cluster2 = NULL, shock_cluster = NULL) {
   stopifnot(inherits(design, "ssb_design"))
   methods <- tolower(methods)
