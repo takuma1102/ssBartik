@@ -2,7 +2,7 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-07-08T08:24Z
+last_built: 2026-07-08T08:34Z
 urls:
   reference: https://takuma1102.github.io/ssBartik/reference
   article: https://takuma1102.github.io/ssBartik/articles
