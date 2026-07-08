@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -137,8 +137,8 @@
 </tr>
 <tr>
 <td>inference</td>
-<td>EHW / AKM / AKM0 (cluster, two-way on request)</td>
-<td>EHW / AKM / AKM0 (cluster, two-way on request)</td>
+<td>EHW / cluster / AKM / AKM0 (iid, two-way on request)</td>
+<td>EHW / cluster / AKM / AKM0 (iid, two-way on request)</td>
 </tr>
 </tbody>
 </table>
@@ -154,7 +154,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rot</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>                           <span class="co"># see below</span></span></code></pre></div>
 <p><img src="reference/figures/weight_summary.png" alt="Rotemberg weight table"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_estimate.html">ssb_estimate</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                     <span class="co"># IID / EHW / AKM / AKM0 (add cluster/two-way on request)</span></span>
+<code class="sourceCode R"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_estimate.html">ssb_estimate</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                     <span class="co"># EHW / cluster / AKM / AKM0 (add iid/two-way on request)</span></span>
 <span><span class="fu"><a href="reference/ssb_plot_ci.html">ssb_plot_ci</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/ci_patterns.png" alt="CI comparison plot"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -221,7 +221,7 @@
 <tbody>
 <tr>
 <td><code><a href="reference/ssb_rotemberg.html">ssb_rotemberg()</a></code></td>
-<td>Rotemberg-weight decomposition (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code>/<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> paper table)</td>
+<td>Rotemberg-weight decomposition (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code>/<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> paper table) (see GPSS)</td>
 </tr>
 <tr>
 <td><code><a href="reference/ssb_weight_summary.html">ssb_weight_summary()</a></code></td>
@@ -261,7 +261,7 @@
 </tr></thead>
 <tbody><tr>
 <td><code><a href="reference/ssb_estimate.html">ssb_estimate()</a></code></td>
-<td>point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> paper table)</td>
+<td>point estimate + CI: EHW/cluster/AKM/AKM0 by default, iid/two-way on request (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> paper table) (see AKM)</td>
 </tr></tbody>
 </table>
 <p><img src="reference/figures/ci_table.png" alt="CI comparison table"></p>
@@ -324,7 +324,7 @@
 </tr>
 <tr>
 <td><code><a href="reference/ssb_loo.html">ssb_loo()</a></code></td>
-<td>leave-one-sector-out sensitivity</td>
+<td>leave-one-sector-out sensitivity (see AKM)</td>
 </tr>
 </tbody>
 </table>
@@ -481,7 +481,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

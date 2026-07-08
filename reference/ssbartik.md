@@ -125,11 +125,11 @@ res
 #> 
 #> <ssBartik estimate>
 #>   first-stage F : 324.9
-#>  method estimate std.error conf.low conf.high note
-#>     IID     1.23    0.0445     1.14      1.31     
-#>     EHW     1.23    0.0382     1.15      1.30     
-#>     AKM     1.23    0.0268     1.17      1.28     
-#>    AKM0     1.23    0.3156     1.09      2.33     
+#>         method estimate std.error conf.low conf.high           note
+#>            EHW     1.23    0.0382     1.15      1.30               
+#>  Clustering SE     1.23        NA       NA        NA no cluster var
+#>            AKM     1.23    0.0268     1.17      1.28               
+#>           AKM0     1.23    0.3156     1.09      2.33               
 #> 
 #> <ssBartik first-stage strength>
 #>   standard robust F         : 324.9

@@ -86,7 +86,7 @@ and controls apply:
 | pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
 | robustness | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
 | extra control | — | sum-of-shares (auto, when incomplete) |
-| inference | EHW / AKM / AKM0 (cluster, two-way on request) | EHW / AKM / AKM0 (cluster, two-way on request) |
+| inference | EHW / cluster / AKM / AKM0 (iid, two-way on request) | EHW / cluster / AKM / AKM0 (iid, two-way on request) |
 
 ## Step-by-step analysis
 
@@ -105,7 +105,7 @@ plot(rot, n = 6)                           # see below
 
 ``` r
 
-est <- ssb_estimate(d)                     # IID / EHW / AKM / AKM0 (add cluster/two-way on request)
+est <- ssb_estimate(d)                     # EHW / cluster / AKM / AKM0 (add iid/two-way on request)
 ssb_plot_ci(est)
 ```
 
@@ -175,7 +175,7 @@ when you pass the corresponding arguments (`pre_y`, `placebo_y`,
 
 | function | purpose |
 |----|----|
-| [`ssb_rotemberg()`](https://takuma1102.github.io/ssBartik/reference/ssb_rotemberg.md) | Rotemberg-weight decomposition (+ [`format()`](https://rdrr.io/r/base/format.html)/[`plot()`](https://rdrr.io/r/graphics/plot.default.html) paper table) |
+| [`ssb_rotemberg()`](https://takuma1102.github.io/ssBartik/reference/ssb_rotemberg.md) | Rotemberg-weight decomposition (+ [`format()`](https://rdrr.io/r/base/format.html)/[`plot()`](https://rdrr.io/r/graphics/plot.default.html) paper table) (see GPSS) |
 | [`ssb_weight_summary()`](https://takuma1102.github.io/ssBartik/reference/ssb_weight_summary.md) | Rotemberg-weight summary + correlations (α vs. βₖ, F, covariates) |
 | [`ssb_shock_summary()`](https://takuma1102.github.io/ssBartik/reference/ssb_shock_summary.md) | effective number of shocks, exposure concentration |
 | [`ssb_first_stage()`](https://takuma1102.github.io/ssBartik/reference/ssb_first_stage.md) | first-stage strength: standard & exposure-robust (effective) F |
@@ -204,7 +204,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----|----|
-| [`ssb_estimate()`](https://takuma1102.github.io/ssBartik/reference/ssb_estimate.md) | point estimate + confidence intervals: IID/EHW/AKM/AKM0 by default, cluster/two-way on request (+ [`format()`](https://rdrr.io/r/base/format.html) paper table) |
+| [`ssb_estimate()`](https://takuma1102.github.io/ssBartik/reference/ssb_estimate.md) | point estimate + CI: EHW/cluster/AKM/AKM0 by default, iid/two-way on request (+ [`format()`](https://rdrr.io/r/base/format.html) paper table) (see AKM) |
 
 ![CI comparison table](reference/figures/ci_table.png)
 
@@ -223,7 +223,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 | [`ssb_pretrend()`](https://takuma1102.github.io/ssBartik/reference/ssb_pretrend.md) | pre-trend test (reduced form of a pre-period outcome on the instrument) |
 | [`ssb_placebo()`](https://takuma1102.github.io/ssBartik/reference/ssb_placebo.md) | placebo-outcome test (full IV on an outcome that should not move) |
 | [`ssb_ri()`](https://takuma1102.github.io/ssBartik/reference/ssb_ri.md) | randomization inference (Anderson-Rubin-style placebo shocks) |
-| [`ssb_loo()`](https://takuma1102.github.io/ssBartik/reference/ssb_loo.md) | leave-one-sector-out sensitivity |
+| [`ssb_loo()`](https://takuma1102.github.io/ssBartik/reference/ssb_loo.md) | leave-one-sector-out sensitivity (see AKM) |
 
 ![LOO Plot](reference/figures/loo_plot.png)
 
