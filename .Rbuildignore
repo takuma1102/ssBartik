@@ -11,3 +11,4 @@
 ^.*\.patch$
 ^.*\.diff$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
