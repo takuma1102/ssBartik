@@ -1,6 +1,6 @@
 # Changelog
 
-## ssBartik 0.1.0.9000
+## ssBartik 0.1.1
 
 First release. An end-to-end toolkit for shift-share (Bartik)
 instrumental variables, spanning both identification routes (exogenous
