@@ -7,12 +7,11 @@ Authors@R: person("Takuma", "Iwasaki", email = "iwasakit@stanford.edu",
 Description: Construction, diagnostics, estimation, exposure-robust inference
     and publication-ready visualisation for shift-share (Bartik) instrumental
     variable designs, in one consistent workflow. Organised around the two
-    identification routes of the modern literature: exogenous shares
-    (Goldsmith-Pinkham, Sorkin and Swift, 2020, <doi:10.1257/aer.20181047>)
-    with Rotemberg-weight diagnostics, and exogenous shifts (Borusyak, Hull and
-    Jaravel, 2022, <doi:10.1093/restud/rdab030>; Adao, Kolesar and Morales,
-    2019, <doi:10.1093/qje/qjz025>) with shock-level diagnostics and AKM/AKM0
-    standard errors. Wraps
+    identification routes of the modern literature. The exogenous share
+    approach refers to Goldsmith-Pinkham, Sorkin and Swift (2020) <doi:10.1257/aer.20181047>
+    and the exogenous shift approach refers to Borusyak, Hull and
+    Jaravel (2022) <doi:10.1093/restud/rdab030> and Adao, Kolesar and Morales
+    (2019) <doi:10.1093/qje/qjz025>. Wraps
     'ShiftShareSE' for exposure-robust inference when available.
 License: MIT + file LICENSE
 Encoding: UTF-8
