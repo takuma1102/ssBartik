@@ -79,3 +79,8 @@ Sorkin and Swift 2020; Rotemberg-weight diagnostics) or `exogenous = "shift"`
 for the exogenous-shocks route (Borusyak, Hull and Jaravel 2022; Adao,
 Kolesar and Morales 2019; shock-level diagnostics and AKM inference).
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+d
+}

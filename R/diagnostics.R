@@ -9,6 +9,10 @@
 #' @param design An [ssb_design()] object.
 #' @return A list with `effective_shocks`, `hhi`, `n_shocks`, and a `data.frame`
 #'   `weights` of per-shock importance weights (descending). Class `ssb_shocks`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+#' ssb_shock_summary(d)
 #' @export
 ssb_shock_summary <- function(design) {
   stopifnot(inherits(design, "ssb_design"))
@@ -55,6 +59,10 @@ print.ssb_shocks <- function(x, ...) {
 #'   `beta_drop` obtained without it (plus the full-sample `beta_hat` attribute).
 #'   When `se` is not `"none"` it also has `conf.low`/`conf.high` columns and
 #'   `se_method`/`level` attributes.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_loo(d, top = 5)
 #' @export
 ssb_loo <- function(design, top = 5,
                     se = c("none", "iid", "ehw", "cluster", "akm", "akm0"),
@@ -104,6 +112,10 @@ ssb_loo <- function(design, top = 5,
 #' @param top Number of top-exposure sectors to test.
 #' @return A `data.frame` of slope coefficients and (robust) t-statistics of
 #'   each covariate in the share regression, one block per tested sector.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_share_balance(d, covariates = "w1", top = 3)
 #' @export
 ssb_share_balance <- function(design, covariates, top = 5) {
   stopifnot(inherits(design, "ssb_design"))
@@ -156,6 +168,11 @@ ssb_share_balance <- function(design, covariates, top = 5) {
 #'   EHW / cluster / exposure-robust (AKM) standard errors, the corresponding
 #'   p-values (`p_ehw`, `p_akm`), and intervals (`conf.low`/`conf.high` use the
 #'   EHW SE; `conf.low_akm`/`conf.high_akm` the exposure-robust SE).
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' sim$data$y_pre <- stats::rnorm(nrow(sim$data))   # a pre-period outcome
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_pretrend(d, pre_y = "y_pre")
 #' @export
 ssb_pretrend <- function(design, pre_y, level = 0.95) {
   stopifnot(inherits(design, "ssb_design"))

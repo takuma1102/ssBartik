@@ -24,3 +24,8 @@ the exposure-robust AKM / AKM0 intervals. The comparison is of *intervals*:
 AKM0 is defined as an interval directly (and can be asymmetric), so it is the
 interval, not a standard error, that is the object of interest.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_plot_ci(ssb_estimate(d))
+}

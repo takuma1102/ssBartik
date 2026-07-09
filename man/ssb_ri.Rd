@@ -44,3 +44,8 @@ treatment also responds to the shocks through the first stage, and placebo
 draws with weak first stages give the ratio very heavy tails --- so this
 function does not do that.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_ri(d, R = 199, seed = 1)
+}

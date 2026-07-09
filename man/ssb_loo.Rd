@@ -36,3 +36,8 @@ Recomputes the overall estimate dropping each of the top sectors (by
 |Rotemberg weight|) one at a time, to see whether identification hinges on a
 single shock.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_loo(d, top = 5)
+}

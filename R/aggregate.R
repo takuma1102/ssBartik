@@ -12,6 +12,10 @@
 #' @param design An [ssb_design()] object.
 #' @return A `data.frame` (class `ssb_aggregate`) with columns `sector`, `g`,
 #'   `s_bar` (exposure weight), `x_bar`, `y_bar`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+#' ssb_aggregate(d)
 #' @export
 ssb_aggregate <- function(design) {
   stopifnot(inherits(design, "ssb_design"))
@@ -69,6 +73,10 @@ ssb_shock_iv <- function(design, cluster = NULL, level = 0.95) {
 #' @param design An [ssb_design()] object.
 #' @return A list (class `ssb_equivalence`) with `location`, `shock`, and their
 #'   absolute `difference`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+#' ssb_equivalence(d)
 #' @export
 ssb_equivalence <- function(design) {
   stopifnot(inherits(design, "ssb_design"))

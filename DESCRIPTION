@@ -1,7 +1,7 @@
 Package: ssBartik
 Type: Package
-Title: An End-to-End Pipeline for Shift-Share (Bartik) Instrumental Variables
-Version: 0.1.0.9000
+Title: End-to-End Pipeline for Shift-Share (Bartik) Instrumental Variables
+Version: 0.1.1
 Authors@R: person("Takuma", "Iwasaki", email = "iwasakit@stanford.edu",
     role = c("aut", "cre"), comment = c(affiliation = "Stanford University"))
 Description: Construction, diagnostics, estimation, exposure-robust inference
@@ -11,7 +11,8 @@ Description: Construction, diagnostics, estimation, exposure-robust inference
     (Goldsmith-Pinkham, Sorkin and Swift, 2020, <doi:10.1257/aer.20181047>)
     with Rotemberg-weight diagnostics, and exogenous shifts (Borusyak, Hull and
     Jaravel, 2022, <doi:10.1093/restud/rdab030>; Adao, Kolesar and Morales,
-    2019) with shock-level diagnostics and AKM/AKM0 standard errors. Wraps
+    2019, <doi:10.1093/qje/qjz025>) with shock-level diagnostics and AKM/AKM0
+    standard errors. Wraps
     'ShiftShareSE' for exposure-robust inference when available.
 License: MIT + file LICENSE
 Encoding: UTF-8

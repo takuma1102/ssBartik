@@ -20,3 +20,8 @@ its Herfindahl index, and the *effective number of shocks*
 \eqn{1/\sum_n \bar s_n^2}. Few effective shocks undermine the large-n
 asymptotics that justify the shocks-exogeneity approach.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_shock_summary(d)
+}

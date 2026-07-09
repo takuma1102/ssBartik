@@ -39,3 +39,8 @@ process, so identification comes only from deviations of shocks from their
 For randomization-inference p-values based on the same permutation idea, see
 [ssb_ri()].
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_recenter(d, method = "demean")
+}

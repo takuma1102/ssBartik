@@ -22,3 +22,8 @@ For the top-exposure sectors, regresses each sector's share on observable
 unit characteristics to see how strongly exposure correlates with observables
 --- the key credibility check when identification comes from the shares.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_share_balance(d, covariates = "w1", top = 3)
+}

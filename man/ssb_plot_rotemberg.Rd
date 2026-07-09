@@ -28,3 +28,8 @@ Rotemberg weight; positive-weight cells are blue open circles and negative
 ones amber open diamonds; the dashed horizontal line marks the overall
 estimate \eqn{\hat\beta}.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_plot_rotemberg(ssb_rotemberg(d))
+}

@@ -41,4 +41,9 @@ Generates a small, self-contained shift-share dataset in the long format
 expected by [ssb_design()]: a unit-level table, a long shares table, and a
 shocks table. Useful for examples, tests, and demonstrations.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 50, n_sec = 8, seed = 1)
+str(sim, max.level = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+}
 \keyword{internal}

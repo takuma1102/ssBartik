@@ -30,3 +30,9 @@ picking up something other than the intended channel. This is distinct from
 [ssb_pretrend()], which regresses a *pre-period* outcome on the instrument
 (reduced form) to look for differential pre-trends.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+sim$data$y_placebo <- stats::rnorm(nrow(sim$data))   # an unrelated outcome
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_placebo(d, placebo_y = "y_placebo")
+}

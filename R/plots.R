@@ -36,6 +36,10 @@
 #' @param title Optional plot title.
 #' @param ... Ignored.
 #' @return A `ggplot` object.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_plot_rotemberg(ssb_rotemberg(d))
 #' @export
 ssb_plot_rotemberg <- function(x, max_size = 12, label_top = 0,
                                title = NULL, ...) {
@@ -87,6 +91,10 @@ ssb_plot_rotemberg <- function(x, max_size = 12, label_top = 0,
 #' @param title Optional plot title.
 #' @param ... Ignored.
 #' @return A `ggplot` object.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_plot_ci(ssb_estimate(d))
 #' @export
 ssb_plot_ci <- function(x, title = NULL, ...) {
   stopifnot(inherits(x, "ssb_estimate"))
@@ -153,6 +161,10 @@ autoplot.ssb_estimate <- function(object, ...) ssb_plot_ci(object, ...)
 #' @param title Optional plot title.
 #' @param ... Unused.
 #' @return A \pkg{ggplot2} object.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_plot_loo(ssb_loo(d, top = 5))
 #' @export
 ssb_plot_loo <- function(x, title = NULL, ...) {
   stopifnot(inherits(x, "ssb_loo"))

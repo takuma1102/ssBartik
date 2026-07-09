@@ -20,6 +20,10 @@
 #'   `beta` (just-identified estimate), `F` (first-stage F of that instrument),
 #'   and `sign`. Carries the overall estimate `beta_hat` as an attribute.
 #'   Pass it to [ssb_plot_rotemberg()] for the canonical figure.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_rotemberg(d)
 #' @export
 ssb_rotemberg <- function(design) {
   stopifnot(inherits(design, "ssb_design"))

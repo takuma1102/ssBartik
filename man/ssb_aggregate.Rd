@@ -23,3 +23,8 @@ Running an IV of \eqn{\bar y_n} on \eqn{\bar x_n} with instrument \eqn{g_n}
 and weights \eqn{s_n} reproduces the location-level shift-share estimate
 exactly (see [ssb_equivalence()]).
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_aggregate(d)
+}

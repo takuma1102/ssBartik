@@ -42,6 +42,10 @@
 #'   aliases.
 #'
 #' @return An object of class `ssb_design`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' d
 #' @export
 ssb_design <- function(data, shares, shocks,
                        y = "y", x = "x",

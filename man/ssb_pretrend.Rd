@@ -36,3 +36,9 @@ similar exposure. The test therefore also reports an exposure-robust
 that one as the headline, especially on the shift route, or spurious
 "pre-trends" will appear too often.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+sim$data$y_pre <- stats::rnorm(nrow(sim$data))   # a pre-period outcome
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_pretrend(d, pre_y = "y_pre")
+}

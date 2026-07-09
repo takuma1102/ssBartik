@@ -54,6 +54,10 @@
 #' @return A `data.frame` of class `ssb_estimate` with one row per method
 #'   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
 #'   first-stage F as an attribute. Plot with [ssb_plot_ci()].
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_estimate(d)
 #' @export
 ssb_estimate <- function(design,
                          methods = c("ehw", "cluster", "akm", "akm0"),

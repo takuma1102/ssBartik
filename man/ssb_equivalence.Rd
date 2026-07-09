@@ -19,3 +19,8 @@ the shock-level IV estimate (Borusyak-Hull-Jaravel 2022). A near-zero
 difference is a strong internal-consistency check that the instrument and
 aggregation are behaving as intended.
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_equivalence(d)
+}

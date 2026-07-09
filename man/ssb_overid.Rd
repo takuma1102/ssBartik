@@ -35,3 +35,8 @@ overidentification test --- for the latter, use a J-type test with an
 estimator robust to many instruments (e.g. the HFUL-based test in
 Goldsmith-Pinkham, Sorkin & Swift 2020).
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_overid(d)
+}

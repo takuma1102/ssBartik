@@ -20,3 +20,8 @@ denominator uses the shock-level (AKM-type) variance of the first-stage
 coefficient --- the relevant notion when weak *shocks* are the concern (in
 the spirit of Montiel Olea & Pflueger 2013, adapted to shift-share).
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_first_stage(d)
+}

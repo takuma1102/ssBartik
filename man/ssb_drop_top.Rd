@@ -24,3 +24,8 @@ Removes the `n` shocks with the largest absolute Rotemberg weight *together*
 and re-estimates, to see whether the headline result survives without the
 most influential shocks. (Contrast [ssb_loo()], which drops one at a time.)
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_drop_top(d, n = 3)
+}

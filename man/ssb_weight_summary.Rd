@@ -24,3 +24,8 @@ F, and --- if `covariates` are supplied --- the correlation between each
 shock's Rotemberg weight and its exposure-weighted average of unit
 observables (do high-weight shocks load on systematically different places?).
 }
+\examples{
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_weight_summary(d, covariates = "w1")
+}

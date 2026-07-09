@@ -94,7 +94,7 @@ dat <- data.frame(location = seq_len(n_loc),
 dat$y <- 1.2 * dat$x + stats::rnorm(n_loc, sd = 0.3)
 res <- ssbartik(dat, shares, shocks, exogenous = "share")
 res
-\dontrun{
+\donttest{
 autoplot(res)                       # headline Rotemberg figure
 autoplot(res$estimate)              # CI comparison
 }

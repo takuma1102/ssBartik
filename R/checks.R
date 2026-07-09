@@ -22,6 +22,10 @@
 #' @param min_F Drop instruments whose own first-stage F is below this.
 #' @return A list (class `ssb_overid`) with `Q`, `df`, `p`, `I2`, `beta_bar`,
 #'   `n_instruments`, `n_dropped`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_overid(d)
 #' @export
 ssb_overid <- function(design, min_F = 0) {
   stopifnot(inherits(design, "ssb_design"))
@@ -64,6 +68,11 @@ ssb_overid <- function(design, min_F = 0) {
 #' @param methods Standard-error methods (see [ssb_estimate()]).
 #' @param level Confidence level.
 #' @return An `ssb_estimate` for the placebo outcome.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' sim$data$y_placebo <- stats::rnorm(nrow(sim$data))   # an unrelated outcome
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_placebo(d, placebo_y = "y_placebo")
 #' @export
 ssb_placebo <- function(design, placebo_y,
                         methods = c("ehw", "cluster", "akm"), level = 0.95) {
@@ -106,6 +115,10 @@ ssb_placebo <- function(design, placebo_y,
 #' @return A list (class `ssb_ri`) with the IV point estimate `beta`, the
 #'   observed Anderson-Rubin `statistic`, `null`, `p_value`, `R`, and the vector
 #'   `perm` of placebo statistics.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_ri(d, R = 199, seed = 1)
 #' @export
 ssb_ri <- function(design, R = 999, block = NULL, null = 0, seed = NULL) {
   stopifnot(inherits(design, "ssb_design"))
@@ -156,6 +169,10 @@ ssb_ri <- function(design, R = 999, block = NULL, null = 0, seed = NULL) {
 #' @param design An [ssb_design()] object.
 #' @return A list (class `ssb_first_stage`) with `F_standard`, `F_effective`,
 #'   and the first-stage coefficient `pi`.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_first_stage(d)
 #' @export
 ssb_first_stage <- function(design) {
   stopifnot(inherits(design, "ssb_design"))
@@ -184,6 +201,10 @@ ssb_first_stage <- function(design) {
 #'   `"twoway"` if wanted).
 #' @return A list (class `ssb_drop_top`) with the `dropped` sectors and the
 #'   `full` and `reduced` [ssb_estimate()] tables.
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_drop_top(d, n = 3)
 #' @export
 ssb_drop_top <- function(design, n = 5,
                          methods = c("iid", "ehw", "akm", "akm0")) {
@@ -210,6 +231,10 @@ ssb_drop_top <- function(design, n = 5,
 #' @param covariates Optional unit-level observable columns in `data`.
 #' @param top Number of top-weight shocks to display.
 #' @return A list (class `ssb_weight_summary`).
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+#' ssb_weight_summary(d, covariates = "w1")
 #' @export
 ssb_weight_summary <- function(design, covariates = NULL, top = 5) {
   stopifnot(inherits(design, "ssb_design"))

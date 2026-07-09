@@ -25,6 +25,10 @@
 #' @param ... Reserved.
 #' @return A new [ssb_design()] with recentered shocks/instrument (carries a
 #'   `"recentered"` attribute).
+#' @examples
+#' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+#' ssb_recenter(d, method = "demean")
 #' @export
 ssb_recenter <- function(design, method = c("demean", "permute"),
                          block = NULL, ...) {
