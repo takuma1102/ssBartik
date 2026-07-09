@@ -49,3 +49,18 @@ ssb_recenter(design, method = c("demean", "permute"), block = NULL, ...)
 
 A new \[ssb_design()\] with recentered shocks/instrument (carries a
 \`"recentered"\` attribute).
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_recenter(d, method = "demean")
+#> <ssBartik design>
+#>   route      : exogenous SHIFT
+#>   units      : 80   sectors/cells : 10
+#>   outcome/trt: y ~ x
+#>   controls   : (none)
+#>   weights    : (none)   cluster : (none)
+#>   shares sum to one : yes
+```

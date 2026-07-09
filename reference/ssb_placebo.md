@@ -39,3 +39,19 @@ ssb_placebo(
 ## Value
 
 An \`ssb_estimate\` for the placebo outcome.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+sim$data$y_placebo <- stats::rnorm(nrow(sim$data))   # an unrelated outcome
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_placebo(d, placebo_y = "y_placebo")
+#> <ssBartik placebo test>
+#>   first-stage F : 19.8
+#>   full IV re-estimated with a placebo outcome, which should be unaffected
+#>         method estimate std.error conf.low conf.high           note
+#>            EHW   0.0975    0.2027  -0.2999     0.495               
+#>  Clustering SE   0.0975        NA       NA        NA no cluster var
+#>            AKM   0.0975    0.0582  -0.0166     0.212               
+```

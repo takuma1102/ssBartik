@@ -137,4 +137,4 @@ Render any result table as a booktabs-style PNG/PDF image
 
 - [`ssBartik`](https://takuma1102.github.io/ssBartik/reference/ssBartik-package.md)
   [`ssBartik-package`](https://takuma1102.github.io/ssBartik/reference/ssBartik-package.md)
-  : ssBartik: an end-to-end pipeline for shift-share (Bartik) IV designs
+  : ssBartik: End-to-End Pipeline for Shift-Share (Bartik) IV Designs

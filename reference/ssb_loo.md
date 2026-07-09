@@ -46,3 +46,18 @@ A \`data.frame\` with the dropped \`sector\`, its \`alpha\`, and the
 attribute). When \`se\` is not \`"none"\` it also has
 \`conf.low\`/\`conf.high\` columns and \`se_method\`/\`level\`
 attributes.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_loo(d, top = 5)
+#> <ssBartik leave-one-out>  overall beta = 1.4468
+#>  sector  alpha beta_drop
+#>       6 0.5323      1.40
+#>       3 0.2077      1.44
+#>       8 0.1330      1.57
+#>       4 0.0517      1.42
+#>       9 0.0359      1.42
+```

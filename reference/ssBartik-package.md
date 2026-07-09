@@ -1,4 +1,4 @@
-# ssBartik: an end-to-end pipeline for shift-share (Bartik) IV designs
+# ssBartik: End-to-End Pipeline for Shift-Share (Bartik) IV Designs
 
 Shift-share / Bartik instrumental-variable analysis in R has been spread
 across several single-purpose packages: ShiftShareSE (Kolesar) for AKM

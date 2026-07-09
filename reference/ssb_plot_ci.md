@@ -31,3 +31,11 @@ ssb_plot_ci(x, title = NULL, ...)
 ## Value
 
 A \`ggplot\` object.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_plot_ci(ssb_estimate(d))
+```

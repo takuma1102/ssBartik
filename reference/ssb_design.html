@@ -17,7 +17,7 @@ object flows directly into diagnostics ([ssb_rotemberg()],
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -152,6 +152,20 @@ for the exogenous-shocks route (Borusyak, Hull and Jaravel 2022; Adao,
 Kolesar and Morales 2019; shock-level diagnostics and AKM inference).</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_simulate.html">ssb_simulate</a></span><span class="op">(</span>n_loc <span class="op">=</span> <span class="fl">80</span>, n_sec <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">ssb_design</span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shares</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shocks</span>, exogenous <span class="op">=</span> <span class="st">"share"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ssBartik design&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   route      : exogenous SHARE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   units      : 80   sectors/cells : 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   outcome/trt: y ~ x</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   controls   : (none)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   weights    : (none)   cluster : (none)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   shares sum to one : yes</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

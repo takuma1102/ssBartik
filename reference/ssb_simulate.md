@@ -55,3 +55,16 @@ ssb_simulate(
 
 A list with elements \`data\`, \`shares\`, \`shocks\`, and \`beta\` (the
 true coefficient), suitable for passing to \[ssb_design()\].
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 50, n_sec = 8, seed = 1)
+str(sim, max.level = 1)
+#> List of 4
+#>  $ data  :'data.frame':  50 obs. of  5 variables:
+#>  $ shares:'data.frame':  400 obs. of  3 variables:
+#>  $ shocks:'data.frame':  8 obs. of  2 variables:
+#>  $ beta  : num 1.2
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+```

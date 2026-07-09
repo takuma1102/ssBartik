@@ -23,3 +23,14 @@ ssb_first_stage(design)
 
 A list (class \`ssb_first_stage\`) with \`F_standard\`, \`F_effective\`,
 and the first-stage coefficient \`pi\`.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_first_stage(d)
+#> <ssBartik first-stage strength>
+#>   standard robust F         : 19.8
+#>   effective (exposure) F    : 45.6
+```

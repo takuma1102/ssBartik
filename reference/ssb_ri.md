@@ -55,3 +55,15 @@ the IV ratio itself (holding the observed treatment fixed) would \*not\*
 be exact — the treatment also responds to the shocks through the first
 stage, and placebo draws with weak first stages give the ratio very
 heavy tails — so this function does not do that.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_ri(d, R = 199, seed = 1)
+#> <ssBartik randomization inference>
+#>   IV estimate   : 1.4468   (H0: beta = 0.000)
+#>   AR statistic  : 1.4664   (reduced form of y - beta0*x on the instrument)
+#>   RI p-value    : 0.0300   (199 permutations)
+```

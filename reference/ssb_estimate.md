@@ -94,3 +94,23 @@ and \`twoway\` are not in the default; request them explicitly via
 The \`cluster\` row needs a \`cluster\` column in the design (set via
 \[ssb_design()\]); without one it is reported as \`NA\` with a note
 rather than an error.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_estimate(d)
+#> <ssBartik estimate>
+#>   first-stage F : 19.8
+#>         method estimate std.error conf.low conf.high
+#>            EHW     1.45     0.199     1.06      1.84
+#>  Clustering SE     1.45        NA       NA        NA
+#>            AKM     1.45     0.105     1.24      1.65
+#>           AKM0     1.45       Inf     -Inf       Inf
+#>                            note
+#>                                
+#>                  no cluster var
+#>                                
+#>  unbounded CI (weak instrument)
+```

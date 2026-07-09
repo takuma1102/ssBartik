@@ -31,3 +31,18 @@ ssb_drop_top(design, n = 5, methods = c("iid", "ehw", "akm", "akm0"))
 
 A list (class \`ssb_drop_top\`) with the \`dropped\` sectors and the
 \`full\` and \`reduced\` \[ssb_estimate()\] tables.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_drop_top(d, n = 3)
+#> <ssBartik drop-top-3>
+#>   dropped: 6, 3, 8 
+#>  method full reduced
+#>     IID 1.45    2.09
+#>     EHW 1.45    2.09
+#>     AKM 1.45    2.09
+#>    AKM0 1.45    2.09
+```

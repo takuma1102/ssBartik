@@ -21,7 +21,7 @@ exactly (see [ssb_equivalence()])."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,6 +77,21 @@ exactly (see [ssb_equivalence()]).</p>
   `s_bar` (exposure weight), `x_bar`, `y_bar`.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_simulate.html">ssb_simulate</a></span><span class="op">(</span>n_loc <span class="op">=</span> <span class="fl">80</span>, n_sec <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_design.html">ssb_design</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shares</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shocks</span>, exogenous <span class="op">=</span> <span class="st">"shift"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ssb_aggregate</span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ssBartik shock-level data: 10 shocks&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  sector       g s_bar    x_bar  y_bar</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       1  0.0269  6.91  0.00305  0.045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       2  0.4760  7.52  0.08629  0.244</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       3  1.6698  9.76  0.22588  0.333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       4 -0.3953  6.68 -0.34690 -0.678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       5  0.4363  7.73  0.18326  0.303</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       6 -2.7679  7.05 -0.48367 -0.719</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

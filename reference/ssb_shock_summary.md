@@ -23,3 +23,15 @@ ssb_shock_summary(design)
 A list with \`effective_shocks\`, \`hhi\`, \`n_shocks\`, and a
 \`data.frame\` \`weights\` of per-shock importance weights (descending).
 Class \`ssb_shocks\`.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_shock_summary(d)
+#> <ssBartik shock summary>
+#>   shocks (cells)     : 10
+#>   effective shocks   : 9.8  (HHI 0.102)
+#>   largest exposure   : 0.122 (3)
+```

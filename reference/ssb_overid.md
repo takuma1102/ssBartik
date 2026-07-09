@@ -40,3 +40,17 @@ the p-value as a heuristic screen for gross cross-instrument
 disagreement, not as a formal overidentification test — for the latter,
 use a J-type test with an estimator robust to many instruments (e.g. the
 HFUL-based test in Goldsmith-Pinkham, Sorkin & Swift 2020).
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_overid(d)
+#> <ssBartik overidentification test (cross-instrument homogeneity)>
+#>   Q = 2.44 on 9 df,  p = 0.9824
+#>   I^2 = 0.0%   precision-weighted mean beta = 1.5435
+#>   instruments used: 10 (dropped 0; 9 weak, F<10)
+#>   small p => reject a common coefficient (exogeneity failure OR heterogeneity)
+#>   (heuristic: the beta_k are mutually correlated, so the chi-square reference is approximate)
+```

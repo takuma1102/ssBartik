@@ -180,8 +180,10 @@ res
 #>       1 0.1003      1.21
 #>       4 0.0888      1.22
 #> =================================================================
-if (FALSE) { # \dontrun{
+# \donttest{
 autoplot(res)                       # headline Rotemberg figure
+
 autoplot(res$estimate)              # CI comparison
-} # }
+
+# }
 ```

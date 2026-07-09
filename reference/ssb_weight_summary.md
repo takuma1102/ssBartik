@@ -31,3 +31,23 @@ ssb_weight_summary(design, covariates = NULL, top = 5)
 ## Value
 
 A list (class \`ssb_weight_summary\`).
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_weight_summary(d, covariates = "w1")
+#> <ssBartik Rotemberg-weight summary>
+#>   largest weight: alpha = 0.532 (6)
+#>   cor(alpha, beta_k) = -0.23   cor(alpha, F) = 0.97
+#>   cor(alpha, exposure-weighted covariate):
+#>     w1                0.16
+#>   top shocks by |alpha|:
+#>  sector  alpha  beta     F      g
+#>       6 0.5323 1.486 12.24 -2.768
+#>       3 0.2077 1.472  5.53  1.670
+#>       8 0.1330 0.631  1.54  1.648
+#>       4 0.0517 1.956  2.83 -0.395
+#>       9 0.0359 2.041  1.22  0.507
+```

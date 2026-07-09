@@ -38,3 +38,11 @@ ssb_plot_rotemberg(x, max_size = 12, label_top = 0, title = NULL, ...)
 ## Value
 
 A \`ggplot\` object.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_plot_rotemberg(ssb_rotemberg(d))
+```

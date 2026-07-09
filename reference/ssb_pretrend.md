@@ -45,3 +45,19 @@ with similar exposure. The test therefore also reports an
 exposure-robust (AKM-type) standard error that clusters the score at the
 shock level; treat that one as the headline, especially on the shift
 route, or spurious "pre-trends" will appear too often.
+
+## Examples
+
+``` r
+sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
+sim$data$y_pre <- stats::rnorm(nrow(sim$data))   # a pre-period outcome
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
+ssb_pretrend(d, pre_y = "y_pre")
+#> <ssBartik pre-trend test (reduced form on instrument)>
+#>   pre-period outcome : y_pre
+#>   coef 0.0988
+#>   se   : EHW 0.2049 | cluster NA | exposure-robust (AKM) 0.0581
+#>   p    : EHW 0.630 | exposure-robust 0.089
+#>   (the regressor is shift-share: EHW over-rejects, use the exposure-robust p)
+#>   coefficient near 0 => no differential pre-trend by exposure
+```
