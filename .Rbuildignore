@@ -10,3 +10,4 @@
 ^\.lintr$
 ^.*\.patch$
 ^.*\.diff$
+^cran-comments\.md$
