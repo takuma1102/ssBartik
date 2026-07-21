@@ -64,11 +64,16 @@
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
 </h2>
+<p>Install the released version from CRAN.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ssBartik"</span><span class="op">)</span></span></code></pre></div>
+<blockquote>
+<p><strong>NOTE</strong>: When the version on CRAN is not the latest, install from GitHub directly, or through R-universe for the latest version.</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"takuma1102/ssBartik"</span><span class="op">)</span></span></code></pre></div>
-<p>You can also install through R-universe.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
 <span>  <span class="st">"ssBartik"</span>,</span>
 <span>  repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://takuma1102.r-universe.dev"</span>, <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"repos"</span><span class="op">)</span><span class="op">)</span></span>
@@ -79,7 +84,7 @@
 <h2 id="one-call-pipeline">One-call pipeline<a class="anchor" aria-label="anchor" href="#one-call-pipeline"></a>
 </h2>
 <p>The <code>ssBartik</code> function builds the dataset for shift-share IV analysis, runs the full pipeline, and produces results regarding a CI comparison between AKM/AKM0 and conventional methods, a calculation of the effective F, an overidentification test, Rotemberg weights, a pre-trend test, a placebo analysis, and an LOO analysis.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/takuma1102/ssBartik" class="external-link">ssBartik</a></span><span class="op">)</span></span>
 <span><span class="va">pipeline_analysis</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssbartik.html">ssbartik</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, shares <span class="op">=</span> <span class="va">shares</span>, shocks <span class="op">=</span> <span class="va">shocks</span>, controls <span class="op">=</span> <span class="st">"w1"</span>, weights <span class="op">=</span> <span class="st">"pop"</span>,</span>
 <span>                exogenous <span class="op">=</span> <span class="st">"share"</span>,     <span class="co"># or "shift" </span></span>
@@ -147,37 +152,37 @@
 <h2 id="step-by-step-analysis">Step-by-step analysis<a class="anchor" aria-label="anchor" href="#step-by-step-analysis"></a>
 </h2>
 <p>With a design in hand, each credibility check is finished through a single call.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span>   <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_design.html">ssb_design</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">data</span>, <span class="va">df</span><span class="op">$</span><span class="va">shares</span>, <span class="va">df</span><span class="op">$</span><span class="va">shocks</span>,</span>
 <span>                  controls <span class="op">=</span> <span class="st">"w1"</span>, weights <span class="op">=</span> <span class="st">"pop"</span>, exogenous <span class="op">=</span> <span class="st">"share"</span><span class="op">)</span></span>
 <span><span class="va">rot</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_rotemberg.html">ssb_rotemberg</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                    <span class="co"># Rotemberg-weight decomposition</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rot</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>                           <span class="co"># see below</span></span></code></pre></div>
 <p><img src="reference/figures/weight_summary.png" alt="Rotemberg weight table"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_estimate.html">ssb_estimate</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                     <span class="co"># EHW / cluster / AKM / AKM0 (add iid/two-way on request)</span></span>
 <span><span class="fu"><a href="reference/ssb_plot_ci.html">ssb_plot_ci</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/ci_patterns.png" alt="CI comparison plot"></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># instrument strength &amp; internal consistency</span></span>
 <span><span class="fu"><a href="reference/ssb_first_stage.html">ssb_first_stage</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>               <span class="co"># standard robust F + exposure-robust "effective" F</span></span>
 <span><span class="fu"><a href="reference/ssb_equivalence.html">ssb_equivalence</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>               <span class="co"># location-level SSIV == shock-level IV (sanity check)</span></span>
 <span><span class="fu"><a href="reference/ssb_overid.html">ssb_overid</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                    <span class="co"># do the per-share estimates agree? (Cochran's Q)</span></span></code></pre></div>
 <p><img src="reference/figures/overid.png" alt="Over-identification"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># identifying-assumption checks</span></span>
 <span><span class="fu"><a href="reference/ssb_shock_balance.html">ssb_shock_balance</a></span><span class="op">(</span><span class="va">d</span>, shock_covariates <span class="op">=</span> <span class="va">sc</span><span class="op">)</span>  <span class="co"># shocks vs. pre-determined characteristics</span></span>
 <span><span class="fu"><a href="reference/ssb_pretrend.html">ssb_pretrend</a></span><span class="op">(</span><span class="va">d</span>, pre_y <span class="op">=</span> <span class="st">"y_pre"</span><span class="op">)</span>             <span class="co"># does exposure predict pre-trends?</span></span>
 <span><span class="fu"><a href="reference/ssb_placebo.html">ssb_placebo</a></span><span class="op">(</span><span class="va">d</span>, placebo_y <span class="op">=</span> <span class="st">"y_plac"</span><span class="op">)</span>         <span class="co"># full IV on an outcome that shouldn't move</span></span></code></pre></div>
 <p><img src="reference/figures/placebo.png" alt="Placebo analysis"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/ssb_ri.html">ssb_ri</a></span><span class="op">(</span><span class="va">d</span>, R <span class="op">=</span> <span class="fl">999</span>, block <span class="op">=</span> <span class="st">"grp"</span><span class="op">)</span>            <span class="co"># AR-style randomization inference (shocks permuted within blocks)</span></span></code></pre></div>
 <p><img src="reference/figures/random_inf.png" alt="Randomization inference"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># sensitivity to influential shocks</span></span>
 <span><span class="va">ws</span><span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_weight_summary.html">ssb_weight_summary</a></span><span class="op">(</span><span class="va">d</span>, covariates <span class="op">=</span> <span class="st">"w1"</span><span class="op">)</span>     <span class="co"># who carries the weight? (α vs. βₖ, F, covariates)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ws</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/rotem_shares.png" alt="Rotemberg weight table"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/ssb_drop_top.html">ssb_drop_top</a></span><span class="op">(</span><span class="va">d</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>                        <span class="co"># re-estimate without the top-weight shocks</span></span>
 <span><span class="fu"><a href="reference/ssb_recenter.html">ssb_recenter</a></span><span class="op">(</span><span class="va">d</span>, method <span class="op">=</span> <span class="st">"permute"</span>, block <span class="op">=</span> <span class="st">"grp"</span><span class="op">)</span>     <span class="co"># block-wise recentering (within-block mean shock)</span></span></code></pre></div>
 <p>Each returns a small object with a readable <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method; the same checks run automatically inside <code><a href="reference/ssbartik.html">ssbartik()</a></code> / <code><a href="reference/ssb_pipeline.html">ssb_pipeline()</a></code> when you pass the corresponding arguments (<code>pre_y</code>, <code>placebo_y</code>, <code>shock_covariates</code>, <code>covariates</code>).</p>
@@ -240,7 +245,7 @@
 <blockquote>
 <p><strong>Note</strong> The Rotemberg decomposition is the headline credibility table of the exogenous-shares approach (Goldsmith-Pinkham, Sorkin &amp; Swift 2020): it shows which shocks the estimate leans on and whether their just-identified estimates agree. <code><a href="reference/ssb_rotemberg.html">ssb_rotemberg()</a></code> prints a console summary by default, and exports a publication-quality table of the top-weight shocks on demand:</p>
 </blockquote>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rot</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_rotemberg.html">ssb_rotemberg</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">rot</span><span class="op">)</span>                                 <span class="co"># console summary (default)</span></span>
 <span></span>
@@ -431,6 +436,7 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=ssBartik" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/takuma1102/ssBartik/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/takuma1102/ssBartik/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://github.com/takuma1102/ssBartik" class="external-link">Source code</a></li>

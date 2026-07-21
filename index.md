@@ -35,13 +35,21 @@ table](reference/figures/weight_summary.png)
 
 ## Install
 
+Install the released version from CRAN.
+
+``` r
+
+install.packages("ssBartik")
+```
+
+> **NOTE**: When the version on CRAN is not the latest, install from
+> GitHub directly, or through R-universe for the latest version.
+
 ``` r
 
 # install.packages("remotes")
 remotes::install_github("takuma1102/ssBartik")
 ```
-
-You can also install through R-universe.
 
 ``` r
 
