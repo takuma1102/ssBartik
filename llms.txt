@@ -2,6 +2,8 @@
 
 [![R-CMD-check](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/ssBartik)](https://CRAN.R-project.org/package=ssBartik)
 [![r-universe
 version](https://takuma1102.r-universe.dev/ssBartik/badges/version)](https://takuma1102.r-universe.dev/ssBartik)
 [![Lifecycle:

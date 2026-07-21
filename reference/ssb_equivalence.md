@@ -31,5 +31,5 @@ ssb_equivalence(d)
 #> <ssBartik equivalence check>
 #>   location-level SSIV : 1.446813
 #>   shock-level IV      : 1.446813
-#>   |difference|        : 0.00e+00  (match)
+#>   |difference|        : 2.22e-16  (match)
 ```
