@@ -27,19 +27,34 @@
 #' `conf.low > conf.high`; `ssb_estimate()` flags both cases in the `note`
 #' column and the table/plot methods render them accordingly.
 #'
-#' The default panel is `ehw` / `cluster` / `akm` / `akm0`: two classical
-#' robust SEs (heteroskedasticity- and cluster-robust) shown next to the two
-#' exposure-robust AKM / AKM0 intervals. `iid` (homoskedastic) and `twoway` are
-#' not in the default; request them explicitly via `methods` when wanted (e.g.
-#' `methods = c("iid", "ehw", "cluster", "twoway", "akm", "akm0")`, adding
-#' `cluster2` for two-way clustering). The `cluster` row needs a `cluster`
-#' column in the design (set via [ssb_design()]); without one it is reported as
-#' `NA` with a note rather than an error.
+#' **The default methods follow the identification route of the design**
+#' (Borusyak-Hull-Jaravel JEP practical guide):
+#' \itemize{
+#'   \item `exogenous = "share"` (Goldsmith-Pinkham-Sorkin-Swift):
+#'         identification comes from the shares, and conventional inference is
+#'         appropriate --- the default is `ehw` plus `cluster` when the design
+#'         has a `cluster` variable.
+#'   \item `exogenous = "shift"` (Borusyak-Hull-Jaravel; Adao-Kolesar-Morales):
+#'         with as-good-as-random shocks, conventional EHW / cluster standard
+#'         errors over-reject because residuals are correlated across units
+#'         with similar exposure --- the default is the exposure-robust panel
+#'         `akm` / `akm0`.
+#' }
+#' Supplying `methods` explicitly overrides the default, e.g. to place the
+#' conventional and exposure-robust intervals side by side for a
+#' methodological comparison; the printed table always states the route so
+#' the headline inference is unambiguous. `iid` (homoskedastic) and `twoway`
+#' are only reported on request (add `cluster2` for two-way clustering). The
+#' `cluster` row needs a `cluster` column in the design (set via
+#' [ssb_design()]); without one it is reported as `NA` with a note rather
+#' than an error.
 #'
 #' @param design An [ssb_design()] object.
-#' @param methods Which methods to report. Defaults to `ehw`, `cluster`, `akm`,
-#'   `akm0`; add `"iid"` (homoskedastic) and/or `"twoway"` for two-way
-#'   clustering. `cluster` needs the design's `cluster` column (else `NA`).
+#' @param methods Which methods to report. `NULL` (default) resolves by the
+#'   design's route: `c("ehw", "cluster")` on the share route (dropping
+#'   `cluster` if no cluster variable is set), `c("akm", "akm0")` on the
+#'   shift route. Supply a character vector of `"iid"`, `"ehw"`, `"cluster"`,
+#'   `"twoway"`, `"akm"`, `"akm0"` to override.
 #' @param level Confidence level for the reported intervals.
 #' @param cluster2 Optional second clustering column in `data` for the
 #'   `"twoway"` method (paired with the design's `cluster`).
@@ -48,21 +63,25 @@
 #'   to the number of shock-cells. Use it when shocks are mutually correlated
 #'   within groups --- e.g. sub-industries within broader industries, or
 #'   sector cells of the same sector across periods --- so the exposure-robust
-#'   variance is clustered at the group level (Adao, Kolesar & Morales 2019;
-#'   passed to \pkg{ShiftShareSE} as `sector_cvar`).
+#'   variance is clustered at the group level (Adao, Kolesar & Morales 2019).
+#'   It is passed to \pkg{ShiftShareSE} as `sector_cvar`, which clusters the
+#'   shock-level scores; the package's test suite verifies this against a
+#'   hand-computed cluster-robust shock-level regression, so the grouping is
+#'   genuinely used rather than shocks being treated as independent.
 #'
 #' @return A `data.frame` of class `ssb_estimate` with one row per method
 #'   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
-#'   first-stage F as an attribute. Plot with [ssb_plot_ci()].
+#'   first-stage F and the identification route as attributes. Plot with
+#'   [ssb_plot_ci()].
 #' @examples
 #' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
 #' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
-#' ssb_estimate(d)
+#' ssb_estimate(d)   # share route: conventional (EHW) inference
 #' @export
-ssb_estimate <- function(design,
-                         methods = c("ehw", "cluster", "akm", "akm0"),
+ssb_estimate <- function(design, methods = NULL,
                          level = 0.95, cluster2 = NULL, shock_cluster = NULL) {
   stopifnot(inherits(design, "ssb_design"))
+  if (is.null(methods)) methods <- .ssb_default_methods(design)
   methods <- tolower(methods)
   methods <- ifelse(methods %in% c("homoskedastic", "homoscedastic"), "iid", methods)
   known <- c("iid", "ehw", "cluster", "twoway", "akm", "akm0")
@@ -127,8 +146,17 @@ ssb_estimate <- function(design,
   out <- do.call(rbind, rows); rownames(out) <- NULL
   attr(out, "fstat") <- fs
   attr(out, "level") <- level
+  attr(out, "route") <- d$exogenous
   class(out) <- c("ssb_estimate", "data.frame")
   out
+}
+
+# Route-appropriate default SE methods (BHJ JEP): conventional inference when
+# the shares are the exogenous element, exposure-robust inference when the
+# shocks are (conventional SEs over-reject there, Adao-Kolesar-Morales 2019).
+.ssb_default_methods <- function(design) {
+  if (design$exogenous == "shift") c("akm", "akm0")
+  else c("ehw", if (!is.null(design$vars$cluster)) "cluster")
 }
 
 # Adao-Kolesar-Morales exposure-robust inference via ShiftShareSE::ivreg_ss.
@@ -146,9 +174,14 @@ ssb_estimate <- function(design,
 
   v <- d$vars
   ctl <- v$controls %||% character(0)
-  if (d$exogenous == "shift" && !d$mat$complete) {
-    d$data[[".share_sum"]] <- d$mat$share_sum        # incomplete-shares control
-    ctl <- c(ctl, ".share_sum")
+  # route-specific automatic controls (sum of exposure shares; interacted with
+  # period FE in panels), pruned of anything the user controls already span
+  A <- .ssb_auto_kept(d, .ssb_user_C(d))
+  if (!is.null(A)) {
+    nm <- make.names(colnames(A), unique = TRUE)
+    colnames(A) <- nm
+    for (j in seq_along(nm)) d$data[[nm[j]]] <- A[, j]
+    ctl <- c(ctl, nm)
   }
   rhs <- if (length(ctl)) paste(ctl, collapse = " + ") else "1"
   fml <- stats::as.formula(paste(v$y, "~", rhs, "|", v$x))
@@ -200,6 +233,11 @@ print.ssb_estimate <- function(x, format = c("console", "latex", "markdown"),
   }
   plac <- attr(x, "placebo")
   cat(if (is.null(plac)) "<ssBartik estimate>\n" else "<ssBartik placebo test>\n")
+  rt <- attr(x, "route")
+  if (!is.null(rt))
+    cat(sprintf("  route         : exogenous %s -> %s\n", toupper(rt),
+                if (rt == "shift") "exposure-robust (AKM / AKM0) inference"
+                else "conventional (EHW / cluster) inference"))
   cat(sprintf("  first-stage F : %.1f\n", attr(x, "fstat")))
   if (!is.null(plac))
     cat("  full IV re-estimated with a placebo outcome, which should be unaffected\n")

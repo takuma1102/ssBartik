@@ -2,27 +2,28 @@
 % Please edit documentation in R/checks.R
 \name{ssb_drop_top}
 \alias{ssb_drop_top}
-\title{Re-estimate after dropping the top-weight shocks}
+\title{Re-estimate after dropping the top-weight sectors}
 \usage{
-ssb_drop_top(design, n = 5, methods = c("iid", "ehw", "akm", "akm0"))
+ssb_drop_top(design, n = 5, methods = NULL)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
-\item{n}{Number of top-weight shocks to drop.}
+\item{n}{Number of top-weight sectors to drop.}
 
 \item{methods}{Inference methods for the comparison, passed to
-[ssb_estimate()] (defaults to the exposure-robust panel; add `"cluster"` /
-`"twoway"` if wanted).}
+[ssb_estimate()]. `NULL` (default) uses the route-appropriate methods of
+[ssb_estimate()].}
 }
 \value{
 A list (class `ssb_drop_top`) with the `dropped` sectors and the
   `full` and `reduced` [ssb_estimate()] tables.
 }
 \description{
-Removes the `n` shocks with the largest absolute Rotemberg weight *together*
-and re-estimates, to see whether the headline result survives without the
-most influential shocks. (Contrast [ssb_loo()], which drops one at a time.)
+Removes the `n` sector-cells with the largest absolute Rotemberg weight
+*together* and re-estimates, to see whether the headline result survives
+without the most influential share instruments. (Contrast [ssb_loo()],
+which drops one at a time.)
 }
 \examples{
 sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)

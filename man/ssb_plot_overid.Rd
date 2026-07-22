@@ -25,8 +25,9 @@ A \pkg{ggplot2} object.
 \description{
 Forest plot of the just-identified estimates \eqn{\hat\beta_k} (one per
 instrument) with confidence intervals, ordered by size, against the
-precision-weighted mean (dashed line). Wide, mutually inconsistent estimates
+overidentified estimate (dashed line). Wide, mutually inconsistent estimates
 signal a failure of the exogeneity assumption or treatment-effect
-heterogeneity (see [ssb_overid()]). Point size is the first-stage F; the axis
-is trimmed to the bulk since weak instruments have very wide intervals.
+heterogeneity; the formal test is the Sargan-Hansen J in the subtitle (see
+[ssb_overid()]). Point size is the first-stage F; the axis is trimmed to the
+bulk since weak instruments have very wide intervals.
 }

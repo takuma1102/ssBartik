@@ -32,33 +32,74 @@ ssb_aggregate <- function(design) {
   out
 }
 
-#' Shock-level IV estimate
+# Shock-level controls for the Borusyak-Hull-Jaravel equivalent regression:
+# period fixed effects in panels (the constant is added by .ssb_resid itself).
+# Exposure-robust inference must residualise the shocks on these controls,
+# with exposure weights, before forming the shock-level scores: using the raw
+# g_n leaves the point estimate unchanged but mis-states the standard errors.
+# This mirrors the BHJ ssaggregate workflow (aggregate the residualised
+# location variables, then run the shock-level IV with a constant and period
+# fixed effects) and is cross-checked against ShiftShareSE's AKM variance.
+.ssb_shock_C <- function(design) {
+  tt <- design$mat$cell_time
+  if (is.null(tt)) return(NULL)
+  per <- factor(tt)
+  if (nlevels(per) < 2L) return(NULL)
+  D <- stats::model.matrix(~ 0 + per)[, -1, drop = FALSE]
+  colnames(D) <- paste0(".period", levels(per)[-1])
+  D
+}
+
+#' Shock-level IV estimate with exposure-robust standard errors
 #'
-#' Runs the exposure-weighted IV at the shock level (see [ssb_aggregate()]).
-#' The point estimate equals the location-level shift-share estimate; the
-#' shock-level heteroskedasticity- or cluster-robust standard error here is the
-#' natural shock-level analogue of the AKM exposure-robust SE.
+#' Runs the exposure-weighted IV at the shock level (see [ssb_aggregate()]),
+#' including the shock-level controls of the Borusyak-Hull-Jaravel equivalent
+#' regression: a constant, plus period fixed effects in panels. The point
+#' estimate equals the location-level shift-share estimate (exactly so on the
+#' shift route, where the corresponding location-level controls -- the sum of
+#' exposure shares, interacted with period fixed effects in panels -- are in
+#' place automatically); the heteroskedasticity- or cluster-robust standard
+#' error of this shock-level regression is the exposure-robust (AKM-type) SE.
+#'
+#' The scores use the shocks *residualised* on the shock-level controls with
+#' exposure weights, \eqn{\tilde g_n}, not the raw \eqn{g_n}: the two give the
+#' same coefficient but different standard errors, and only the residualised
+#' version is valid (Borusyak, Hull & Jaravel; cf. their `ssaggregate`
+#' workflow, against which this calculation is aligned).
 #'
 #' @param design An [ssb_design()] object.
-#' @param cluster Optional vector (length = number of shock-cells) grouping
-#'   shocks into clusters for the shock-level SE.
+#' @param cluster Optional grouping of the shocks for a cluster-robust
+#'   shock-level SE: a column name in the shocks table, or a vector of length
+#'   equal to the number of shock-cells.
 #' @param level Confidence level for the reported interval.
 #' @return A one-row `data.frame` (class `ssb_shock_iv`) with `estimate`,
 #'   `std.error`, `conf.low`, `conf.high`.
 #' @export
 ssb_shock_iv <- function(design, cluster = NULL, level = 0.95) {
+  stopifnot(inherits(design, "ssb_design"))
   agg <- ssb_aggregate(design)
-  s <- agg$s_bar; g <- agg$g; xb <- agg$x_bar; yb <- agg$y_bar
-  den  <- sum(s * g * xb)
-  beta <- sum(s * g * yb) / den
-  e    <- yb - beta * xb
-  mom  <- s * g * e
-  meat <- if (is.null(cluster)) sum(mom^2) * length(mom) / max(length(mom) - 1, 1)
-          else .ssb_cluster_meat(mom, cluster)
+  s <- agg$s_bar
+  # FWL at the shock level: residualise the shocks AND the aggregated
+  # outcome / treatment on the shock-level controls, weighting by exposure.
+  Q  <- .ssb_shock_C(design)
+  gt <- .ssb_resid(agg$g,     Q, s)
+  xt <- .ssb_resid(agg$x_bar, Q, s)
+  yt <- .ssb_resid(agg$y_bar, Q, s)
+  den  <- sum(s * gt * xt)
+  beta <- sum(s * gt * yt) / den
+  e    <- yt - beta * xt
+  mom  <- s * gt * e
+  K    <- length(mom)
+  kq   <- .ssb_np(Q) + 1L             # constant + period FE + the IV slope
+  cl   <- if (is.null(cluster)) NULL else .ssb_block(design, cluster)
+  meat <- if (is.null(cl)) sum(mom^2) * K / max(K - kq, 1)
+          else .ssb_cluster_meat(mom, cl)
   se <- sqrt(meat) / abs(den)
   q  <- stats::qnorm(1 - (1 - level) / 2)
   out <- data.frame(estimate = beta, std.error = se,
                     conf.low = beta - q * se, conf.high = beta + q * se)
+  attr(out, "n_shocks")  <- K
+  attr(out, "clustered") <- !is.null(cl)
   class(out) <- c("ssb_shock_iv", "data.frame")
   out
 }
@@ -68,7 +109,11 @@ ssb_shock_iv <- function(design, cluster = NULL, level = 0.95) {
 #' Verifies numerically that the location-level shift-share IV estimate equals
 #' the shock-level IV estimate (Borusyak-Hull-Jaravel 2022). A near-zero
 #' difference is a strong internal-consistency check that the instrument and
-#' aggregation are behaving as intended.
+#' aggregation are behaving as intended. Equality is exact on the shift route,
+#' where the location-level regression carries the BHJ controls that translate
+#' into the shock-level constant and period fixed effects (the sum of exposure
+#' shares, interacted with period FE in panels) automatically; it is a
+#' shift-route diagnostic and is run there by [ssb_pipeline()].
 #'
 #' @param design An [ssb_design()] object.
 #' @return A list (class `ssb_equivalence`) with `location`, `shock`, and their

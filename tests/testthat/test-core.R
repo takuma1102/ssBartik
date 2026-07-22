@@ -114,20 +114,30 @@ test_that("EHW SE grows when controls consume degrees of freedom", {
   expect_gt(se, se_old)
 })
 
-test_that("cluster is in the default panel; iid and two-way are opt-in", {
+test_that("default methods follow the identification route; iid/two-way are opt-in", {
   sim <- ssb_simulate(n_loc = 120, n_sec = 10, seed = 31)
   sim$data$grp  <- rep(1:6, length.out = nrow(sim$data))
   sim$data$grp2 <- rep(1:5, length.out = nrow(sim$data))
   d <- ssb_design(sim$data, sim$shares, sim$shocks,
                   weights = "pop", cluster = "grp", exogenous = "shift")
 
-  def <- ssb_estimate(d)                       # default methods
-  expect_setequal(def$method, c("ehw", "cluster", "akm", "akm0"))
-  expect_false(any(c("iid", "twoway") %in% def$method))
-  # design here has a cluster var, so the default cluster row is finite
-  expect_true(is.finite(def$std.error[def$method == "cluster"]))
+  def <- ssb_estimate(d)                       # shift route -> exposure-robust
+  expect_setequal(def$method, c("akm", "akm0"))
+  expect_false(any(c("iid", "ehw", "cluster", "twoway") %in% def$method))
+  expect_identical(attr(def, "route"), "shift")
 
-  # available when explicitly requested
+  dsh <- ssb_design(sim$data, sim$shares, sim$shocks,
+                    weights = "pop", cluster = "grp", exogenous = "share")
+  def_sh <- ssb_estimate(dsh)                  # share route -> conventional
+  expect_setequal(def_sh$method, c("ehw", "cluster"))
+  expect_true(is.finite(def_sh$std.error[def_sh$method == "cluster"]))
+  expect_false(any(c("akm", "akm0") %in% def_sh$method))
+
+  dsh2 <- ssb_design(sim$data, sim$shares, sim$shocks,
+                     weights = "pop", exogenous = "share")
+  expect_setequal(ssb_estimate(dsh2)$method, "ehw")   # no cluster var set
+
+  # explicit methods override the route defaults
   with_cl <- ssb_estimate(d, methods = c("ehw", "cluster"))
   expect_true("cluster" %in% with_cl$method)
   expect_true(is.finite(with_cl$std.error[with_cl$method == "cluster"]))

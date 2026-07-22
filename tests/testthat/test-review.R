@@ -96,10 +96,12 @@ test_that("disjoint confidence sets render as complements, not reversed interval
   expect_true(any(grepl("\\cup", tex, fixed = TRUE)))
 })
 
-test_that("ssb_design messages when the identification route is left implicit", {
+test_that("ssb_design requires the identification route", {
   sim <- ssb_simulate(n_loc = 40, n_sec = 5, seed = 107)
-  expect_message(ssb_design(sim$data, sim$shares, sim$shocks),
-                 "exogenous")
+  expect_error(ssb_design(sim$data, sim$shares, sim$shocks),
+               "exogenous")
+  expect_error(ssbartik(sim$data, sim$shares, sim$shocks),
+               "exogenous")
   expect_silent(ssb_design(sim$data, sim$shares, sim$shocks,
                            exogenous = "shift"))
 })

@@ -28,6 +28,6 @@
 A character vector of the table lines; pass to `writeLines()`.
 }
 \description{
-Paste-ready statistic/value table for the [ssb_overid()] cross-instrument
-homogeneity test.
+Paste-ready statistic/value table for the [ssb_overid()] Sargan-Hansen
+overidentification test.
 }

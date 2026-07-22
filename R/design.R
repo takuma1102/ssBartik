@@ -8,12 +8,24 @@
 #' [ssb_shock_summary()], ...), estimation ([ssb_estimate()]) and plotting.
 #'
 #' The **instrument is constructed identically** whichever identification route
-#' you take; the `exogenous` argument only governs which *diagnostics* and
-#' *controls* are appropriate downstream (see [ssb_pipeline()]). Set
-#' `exogenous = "share"` for the exogenous-shares route (Goldsmith-Pinkham,
-#' Sorkin and Swift 2020; Rotemberg-weight diagnostics) or `exogenous = "shift"`
-#' for the exogenous-shocks route (Borusyak, Hull and Jaravel 2022; Adao,
-#' Kolesar and Morales 2019; shock-level diagnostics and AKM inference).
+#' you take; the `exogenous` argument governs which *inference*, *diagnostics*
+#' and *controls* are appropriate downstream (see [ssb_estimate()],
+#' [ssb_pipeline()]). Set `exogenous = "share"` for the exogenous-shares route
+#' (Goldsmith-Pinkham, Sorkin and Swift 2020; Rotemberg-weight diagnostics and
+#' conventional inference) or `exogenous = "shift"` for the exogenous-shocks
+#' route (Borusyak, Hull and Jaravel 2022; Adao, Kolesar and Morales 2019;
+#' shock-level diagnostics and exposure-robust inference). Because the route is
+#' an identification assumption, it **must be specified explicitly** -- there
+#' is no default.
+#'
+#' On the shift route the package adds the Borusyak-Hull-Jaravel controls
+#' automatically: with incomplete shares the per-unit **sum of exposure
+#' shares**, and in panels that sum **interacted with period fixed effects**
+#' (controlling only the overall sum is not enough in a panel -- shocks must be
+#' compared within periods; with complete shares the interaction reduces to
+#' period fixed effects). These automatic columns are pruned of anything
+#' already spanned by your own `controls`, so supplying period fixed effects
+#' yourself is harmless.
 #'
 #' @param data A unit-level `data.frame`: one row per location (or
 #'   location-period). Must contain `y`, `x`, `location`, and any `controls`,
@@ -29,17 +41,21 @@
 #' @param controls Optional character vector of control columns in `data`.
 #'   Numeric columns enter linearly; factor or character columns are expanded
 #'   into dummies, so period or region fixed effects can be supplied as
-#'   factors (in panel shift-share designs, period fixed effects are usually
-#'   essential --- shocks should be compared within periods).
+#'   factors. On the shift route, period fixed effects (interacted with the
+#'   sum of exposure shares) are added automatically in panels --- shocks are
+#'   compared within periods; on the share route in panels, supply period
+#'   fixed effects here yourself.
 #' @param weights Optional column name of regression weights in `data`.
 #' @param cluster Optional column name of a clustering variable in `data`.
 #' @param share_col Name of the exposure-share column in `shares` (default
 #'   `"share"`).
 #' @param shock_col Name of the shock (shift) column in `shocks` (default
 #'   `"shock"`).
-#' @param exogenous Which identification route to emphasise downstream:
-#'   `"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted
-#'   aliases.
+#' @param exogenous **Required.** Which identification route the design rests
+#'   on: `"shift"` (exogenous shocks) or `"share"` (exogenous shares).
+#'   `"shock"`/`"shares"` are accepted aliases. There is no default: the route
+#'   determines the automatic controls, the appropriate standard errors and the
+#'   relevant diagnostics, so it must be chosen deliberately.
 #'
 #' @return An object of class `ssb_design`.
 #' @examples
@@ -53,16 +69,19 @@ ssb_design <- function(data, shares, shocks,
                        time = NULL, controls = NULL,
                        weights = NULL, cluster = NULL,
                        share_col = "share", shock_col = "shock",
-                       exogenous = c("shift", "share")) {
+                       exogenous) {
 
-  # the route is an identification assumption (it also toggles the
-  # incomplete-shares control): don't let it default silently.
-  if (identical(exogenous, c("shift", "share")))
-    message("ssb_design(): `exogenous` not specified; defaulting to the ",
-            "exogenous-SHIFT route. The route determines which controls and ",
-            "diagnostics apply -- set it explicitly (\"shift\" or \"share\").")
+  # the route is an identification assumption (it also fixes the automatic
+  # controls, the standard errors and the diagnostics): it must not default.
+  if (missing(exogenous) || is.null(exogenous) ||
+      length(exogenous) != 1L || is.na(exogenous))
+    stop("ssb_design(): `exogenous` must be specified -- \"shift\" for ",
+         "exogenous shocks (Borusyak-Hull-Jaravel) or \"share\" for exogenous ",
+         "shares (Goldsmith-Pinkham-Sorkin-Swift). The identification route ",
+         "determines which controls, standard errors and diagnostics apply, ",
+         "so it cannot default.", call. = FALSE)
 
-  exogenous <- match.arg(exogenous[1],
+  exogenous <- match.arg(exogenous,
                          c("shift", "share", "shock", "shares"))
   exogenous <- switch(exogenous,
                       shock = "shift", shares = "share", exogenous)
@@ -95,6 +114,11 @@ ssb_design <- function(data, shares, shocks,
 
   # Build aligned instrument / share matrix eagerly so the object is "ready".
   d <- .ssb_build(d)
+  if (exogenous == "shift" && !is.null(time))
+    message("ssb_design(): exogenous-shift panel -- the sum of exposure ",
+            "shares interacted with period fixed effects is controlled ",
+            "automatically (Borusyak-Hull-Jaravel); controlling only the ",
+            "overall sum is not sufficient in panels.")
   d
 }
 
@@ -152,10 +176,34 @@ ssb_design <- function(data, shares, shocks,
     S = S, g = g, z = z, share_sum = share_sum,
     cell_sector = if (is.null(tt)) shocks[[v$sector]]
                   else paste(shocks[[v$sector]], shocks[[tt]], sep = " @ "),
+    cell_time = if (is.null(tt)) NULL else shocks[[tt]],
     complete = isTRUE(all.equal(share_sum, rep(1, length(share_sum)),
                                 tolerance = 1e-6))
   )
+  d$mat$auto_C <- .ssb_make_auto(d)
   d
+}
+
+# Route-specific automatic controls (Borusyak, Hull & Jaravel): with exogenous
+# shocks the per-unit sum of exposure shares must be controlled when shares
+# are incomplete, and in panels the sum must be *interacted with period fixed
+# effects* -- controlling only the overall sum is not enough because shocks
+# have to be compared within periods (this matters a lot in the BHJ ADH
+# application). With complete shares the interaction reduces to period FE.
+# Redundant columns (vs the intercept, or vs user controls) are pruned later
+# by .ssb_auto_kept().
+.ssb_make_auto <- function(d) {
+  if (d$exogenous != "shift") return(NULL)
+  tt <- d$vars$time
+  ss <- d$mat$share_sum
+  if (is.null(tt)) {
+    if (d$mat$complete) return(NULL)
+    return(cbind(.share_sum = ss))
+  }
+  per <- factor(d$data[[tt]])
+  A <- stats::model.matrix(~ 0 + per) * ss
+  colnames(A) <- paste0(".share_sum@", levels(per))
+  A
 }
 
 #' @export
@@ -183,7 +231,7 @@ summary.ssb_design <- function(object, ...) print(object, ...)
   w <- if (is.null(d$vars$weights)) rep(1, nrow(d$data)) else d$data[[d$vars$weights]]
   as.numeric(w)
 }
-.ssb_C <- function(d) {
+.ssb_user_C <- function(d) {
   ctl <- d$vars$controls
   C <- NULL
   if (!is.null(ctl)) {
@@ -199,10 +247,27 @@ summary.ssb_design <- function(object, ...) print(object, ...)
       C <- stats::model.matrix(~ ., data = df)[, -1, drop = FALSE]
     }
   }
-  # for the shift route, always control for the sum of exposure shares when the
-  # design is incomplete (Borusyak, Hull & Jaravel 2022, sec. 3.2)
-  if (d$exogenous == "shift" && !d$mat$complete) {
-    C <- cbind(C, .share_sum = d$mat$share_sum)
-  }
+  C
+}
+
+# Automatic controls (see .ssb_make_auto) pruned of anything already spanned by
+# the intercept and the user controls, so downstream solvers never face an
+# exactly collinear design (e.g. complete-share panels, where the interactions
+# reduce to period dummies the user may already control).
+.ssb_auto_kept <- function(d, C_user) {
+  A <- d$mat$auto_C
+  if (is.null(A) || !ncol(A)) return(NULL)
+  keep <- .ssb_indep_cols(A, X0 = cbind(rep(1, nrow(A)), C_user))
+  if (!length(keep)) return(NULL)
+  A[, keep, drop = FALSE]
+}
+
+.ssb_C <- function(d) {
+  # user controls plus the route-specific automatic controls: on the shift
+  # route the sum of exposure shares (Borusyak, Hull & Jaravel 2022, sec. 3.2),
+  # interacted with period fixed effects in panels (see .ssb_make_auto).
+  C <- .ssb_user_C(d)
+  A <- .ssb_auto_kept(d, C)
+  if (!is.null(A)) C <- cbind(C, A)
   C
 }

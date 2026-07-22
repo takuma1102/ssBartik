@@ -103,15 +103,23 @@ ssb_loo <- function(design, top = 5,
 
 #' Share balance (exogenous-shares route)
 #'
-#' For the top-exposure sectors, regresses each sector's share on observable
-#' unit characteristics to see how strongly exposure correlates with observables
-#' --- the key credibility check when identification comes from the shares.
+#' For the sectors with the **largest absolute Rotemberg weights** --- the
+#' share instruments that actually drive the estimate --- regresses each
+#' sector's share on observable unit characteristics to see how strongly
+#' exposure correlates with observables: the key credibility check when
+#' identification comes from the shares. Both Goldsmith-Pinkham, Sorkin &
+#' Swift (2020) and the Borusyak-Hull-Jaravel JEP practical guide recommend
+#' checking balance for the high-|Rotemberg-weight| shares, not the shares
+#' with the largest average exposure (which earlier versions used): a
+#' high-exposure sector with a near-zero weight contributes almost nothing to
+#' the estimate, and misspecification there is largely harmless.
 #'
 #' @param design An [ssb_design()] object.
 #' @param covariates Character vector of observable columns in `data`.
-#' @param top Number of top-exposure sectors to test.
+#' @param top Number of top-|Rotemberg-weight| sectors to test.
 #' @return A `data.frame` of slope coefficients and (robust) t-statistics of
-#'   each covariate in the share regression, one block per tested sector.
+#'   each covariate in the share regression, one block per tested sector,
+#'   with the sector's Rotemberg weight in `alpha`.
 #' @examples
 #' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
 #' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
@@ -122,10 +130,14 @@ ssb_share_balance <- function(design, covariates, top = 5) {
   miss <- setdiff(covariates, names(design$data))
   if (length(miss)) stop("covariates not in data: ", paste(miss, collapse = ", "))
   w <- .ssb_w(design)
-  imp <- colSums(w * design$mat$S) / sum(w)
-  ord <- order(-imp)[seq_len(min(top, ncol(design$mat$S)))]
+  # test the shares that drive the estimate: largest |Rotemberg weight|
+  # (GPSS 2020; BHJ JEP), not largest average exposure
+  rot  <- ssb_rotemberg(design)
+  nsel <- min(top, nrow(rot))
+  cols <- match(rot$sector[seq_len(nsel)], design$mat$cell_sector)
   X <- as.matrix(design$data[, covariates, drop = FALSE])
-  res <- lapply(ord, function(k) {
+  res <- lapply(seq_len(nsel), function(j) {
+    k  <- cols[j]
     sk <- design$mat$S[, k]
     fit <- stats::lm.wfit(cbind(1, X), sk, w)
     b <- fit$coefficients[-1]
@@ -137,6 +149,7 @@ ssb_share_balance <- function(design, covariates, top = 5) {
     V <- V * nrow(Xd) / max(nrow(Xd) - ncol(Xd), 1)   # HC1 finite-sample factor
     tval <- b / sqrt(diag(V)[-1])
     data.frame(sector = design$mat$cell_sector[k],
+               alpha = rot$alpha[j],
                covariate = covariates, coef = b, t = tval,
                stringsAsFactors = FALSE)
   })
@@ -153,26 +166,31 @@ ssb_share_balance <- function(design, covariates, top = 5) {
 #' outcome; pre-trends ask whether exposure predicts the outcome *before* the
 #' shocks, placebo asks whether the design moves an outcome it should not.
 #'
-#' Because the regressor is itself a shift-share variable, EHW / cluster
-#' standard errors are subject to exactly the over-rejection documented by
-#' Adao, Kolesar & Morales (2019): residuals are correlated across units with
-#' similar exposure. The test therefore also reports an exposure-robust
-#' (AKM-type) standard error that clusters the score at the shock level; treat
-#' that one as the headline, especially on the shift route, or spurious
-#' "pre-trends" will appear too often.
+#' The headline standard error follows the identification route of the design.
+#' On the **shift route** the regressor is a shift-share variable driven by
+#' as-good-as-random shocks, so EHW / cluster standard errors over-reject
+#' (Adao, Kolesar & Morales 2019); the headline `se`/`p`/interval are then
+#' exposure-robust (AKM-type), computed from shock-level scores with the
+#' shocks residualised on the shock-level controls (a constant, plus period
+#' fixed effects in panels) --- see [ssb_shock_iv()]. On the **share route**
+#' identification comes from the shares and conventional inference is
+#' appropriate: the headline is the design's cluster-robust SE if a `cluster`
+#' variable is set, and EHW otherwise. All three SEs are reported either way
+#' for transparency.
 #'
 #' @param design An [ssb_design()] object.
 #' @param pre_y Column name of the pre-period outcome (or pre-period change).
 #' @param level Confidence level.
-#' @return A list (class `ssb_pretrend`) with the reduced-form coefficient,
-#'   EHW / cluster / exposure-robust (AKM) standard errors, the corresponding
-#'   p-values (`p_ehw`, `p_akm`), and intervals (`conf.low`/`conf.high` use the
-#'   EHW SE; `conf.low_akm`/`conf.high_akm` the exposure-robust SE).
+#' @return A list (class `ssb_pretrend`) with the reduced-form coefficient and
+#'   the route-appropriate headline `se`, `p`, `conf.low`/`conf.high` (see
+#'   Details), plus all of `se_ehw` / `se_cluster` / `se_akm`, the p-values
+#'   `p_ehw` / `p_akm`, and the exposure-robust interval
+#'   `conf.low_akm`/`conf.high_akm`.
 #' @examples
 #' sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
 #' sim$data$y_pre <- stats::rnorm(nrow(sim$data))   # a pre-period outcome
-#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
-#' ssb_pretrend(d, pre_y = "y_pre")
+#' d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+#' ssb_pretrend(d, pre_y = "y_pre")   # headline p is exposure-robust
 #' @export
 ssb_pretrend <- function(design, pre_y, level = 0.95) {
   stopifnot(inherits(design, "ssb_design"))
@@ -190,17 +208,29 @@ ssb_pretrend <- function(design, pre_y, level = 0.95) {
   se_ehw <- sqrt(sum(gmom^2) * n / max(n - k, 1)) / zz
   cl <- if (is.null(d$vars$cluster)) NULL else d$data[[d$vars$cluster]]
   se_cl <- if (is.null(cl)) NA_real_ else sqrt(.ssb_cluster_meat(gmom, cl)) / zz
-  # exposure-robust (AKM-type) SE: sum the score within each shock-cell,
-  # sum_i w_i z_i e_i = sum_n g_n sum_i w_i s_in e_i (e is orthogonal to the
-  # controls, so raw and residualised shares agree in this inner product).
-  mn <- as.numeric(d$mat$g * colSums(w * d$mat$S * e))
+  # exposure-robust (AKM-type) SE: shock-level scores with the shocks
+  # residualised on the shock-level controls (constant + period FE), with
+  # exposure weights -- the raw g_n would mis-state the variance, see
+  # ssb_shock_iv()
+  s_n <- as.numeric(colSums(w * d$mat$S))
+  gt  <- .ssb_resid(d$mat$g, .ssb_shock_C(d), s_n)
+  mn  <- as.numeric(gt * colSums(w * d$mat$S * e))
   se_akm <- sqrt(sum(mn^2)) / zz
   q <- stats::qnorm(1 - (1 - level) / 2)
-  structure(list(coef = b, se_ehw = se_ehw, se_cluster = se_cl,
-                 se_akm = se_akm,
+  route <- d$exogenous
+  if (route == "shift") {
+    se_head <- se_akm; headline <- "exposure-robust (AKM)"
+  } else if (!is.na(se_cl)) {
+    se_head <- se_cl;  headline <- "cluster-robust"
+  } else {
+    se_head <- se_ehw; headline <- "EHW"
+  }
+  structure(list(coef = b, route = route, headline = headline,
+                 se = se_head, p = 2 * stats::pnorm(-abs(b / se_head)),
+                 conf.low = b - q * se_head, conf.high = b + q * se_head,
+                 se_ehw = se_ehw, se_cluster = se_cl, se_akm = se_akm,
                  p_ehw = 2 * stats::pnorm(-abs(b / se_ehw)),
                  p_akm = 2 * stats::pnorm(-abs(b / se_akm)),
-                 conf.low = b - q * se_ehw, conf.high = b + q * se_ehw,
                  conf.low_akm = b - q * se_akm, conf.high_akm = b + q * se_akm,
                  pre_y = pre_y), class = "ssb_pretrend")
 }
@@ -214,8 +244,14 @@ print.ssb_pretrend <- function(x, ...) {
               x$se_ehw,
               if (is.na(x$se_cluster)) "NA" else sprintf("%.4f", x$se_cluster),
               x$se_akm))
-  cat(sprintf("  p    : EHW %.3f | exposure-robust %.3f\n", x$p_ehw, x$p_akm))
-  cat("  (the regressor is shift-share: EHW over-rejects, use the exposure-robust p)\n")
+  cat(sprintf("  headline (exogenous %s) : se %.4f, p = %.3f  [%s]\n",
+              toupper(x$route), x$se, x$p, x$headline))
+  if (x$route == "shift")
+    cat("  (shift route: the regressor is shift-share, EHW/cluster over-reject;\n",
+        "  the exposure-robust p is the one to read)\n", sep = "")
+  else
+    cat("  (share route: conventional inference is appropriate; the\n",
+        "  exposure-robust p is shown for reference only)\n", sep = "")
   cat("  coefficient near 0 => no differential pre-trend by exposure\n")
   invisible(x)
 }
@@ -225,15 +261,18 @@ print.ssb_pretrend <- function(x, ...) {
 #' Tests the identifying assumption of the shocks route --- that shocks are
 #' as-good-as-randomly assigned --- by regressing the shocks on pre-determined
 #' shock-level characteristics, weighted by exposure (Borusyak, Hull & Jaravel
-#' 2022). Coefficients near zero and a non-significant joint test support shock
-#' exogeneity.
+#' 2022). Coefficients near zero and a non-significant joint test are
+#' *consistent with* balance: the null hypothesis of balance is not rejected.
+#' Note the asymmetry --- failing to reject does **not** establish that the
+#' shocks are unrelated to observables (the test may simply lack power),
+#' whereas a rejection is direct evidence against shock exogeneity.
 #'
 #' @param design An [ssb_design()] object.
 #' @param shock_covariates A `data.frame` keyed by `sector` (and `time` for
 #'   panels) holding the shock-level characteristics to test.
 #' @param weight If `TRUE` (default) weight by exposure \eqn{s_n}; else unweighted.
 #' @return A list (class `ssb_shock_balance`) with a coefficient table and the
-#'   joint Wald test that the characteristics are unrelated to the shocks.
+#'   joint Wald test of the null hypothesis of balance.
 #' @export
 ssb_shock_balance <- function(design, shock_covariates, weight = TRUE) {
   stopifnot(inherits(design, "ssb_design"))
@@ -273,6 +312,8 @@ print.ssb_shock_balance <- function(x, ...) {
   print(format(x$coefficients, digits = 3), row.names = FALSE)
   cat(sprintf("  joint Wald = %.2f on %d df, p = %.4f\n",
               x$joint_wald, x$joint_df, x$joint_p))
-  cat("  non-significant => shocks unrelated to observed characteristics\n")
+  cat("  large p: the null of balance is NOT rejected (this does not establish\n")
+  cat("  that shocks are unrelated to observables); small p: evidence against\n")
+  cat("  shock exogeneity\n")
   invisible(x)
 }

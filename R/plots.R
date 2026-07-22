@@ -195,7 +195,7 @@ ssb_plot_loo <- function(x, title = NULL, ...) {
     ggplot2::geom_point(size = 2.6, colour = "#1B3A5B") +
     ggplot2::expand_limits(x = 0) +    # always show 0 so distance from the null is legible
     ggplot2::labs(x = expression("Estimate with shock dropped" ~ (hat(beta)[-n])),
-                  y = "Dropped shock (sector number)",
+                  y = "Dropped sector (share instrument)",
                   title = title %||% "Leave-one-out sensitivity",
                   subtitle = sub) +
     .ssb_theme()
@@ -247,10 +247,11 @@ ssb_plot_ri <- function(x, bins = 30, title = NULL, ...) {
 #'
 #' Forest plot of the just-identified estimates \eqn{\hat\beta_k} (one per
 #' instrument) with confidence intervals, ordered by size, against the
-#' precision-weighted mean (dashed line). Wide, mutually inconsistent estimates
+#' overidentified estimate (dashed line). Wide, mutually inconsistent estimates
 #' signal a failure of the exogeneity assumption or treatment-effect
-#' heterogeneity (see [ssb_overid()]). Point size is the first-stage F; the axis
-#' is trimmed to the bulk since weak instruments have very wide intervals.
+#' heterogeneity; the formal test is the Sargan-Hansen J in the subtitle (see
+#' [ssb_overid()]). Point size is the first-stage F; the axis is trimmed to the
+#' bulk since weak instruments have very wide intervals.
 #'
 #' @param x An [ssb_overid()] object.
 #' @param level Confidence level for the per-instrument intervals.
@@ -280,10 +281,16 @@ ssb_plot_overid <- function(x, level = 0.95, xlim = NULL, title = NULL, ...) {
   rng <- if (!is.null(xlim)) xlim else {
     qb  <- stats::quantile(d$beta, c(0.25, 0.75), na.rm = TRUE)
     pad <- as.numeric(qb[2] - qb[1])
-    range(c(qb[1] - pad, qb[2] + pad, x$beta_bar))
+    range(c(qb[1] - pad, qb[2] + pad, x$beta))
   }
+  sub <- if (is.na(x$J))
+    sprintf("Hansen J unavailable (singular weight matrix);  dashed = %s estimate",
+            toupper(x$estimator))
+  else
+    sprintf("Hansen J = %.1f on %d df, p = %.3f;  dashed = %s estimate",
+            x$J, x$df, x$p, toupper(x$estimator))
   ggplot2::ggplot(d, ggplot2::aes(y = .data$sector, x = .data$beta)) +
-    ggplot2::geom_vline(xintercept = x$beta_bar, linetype = "dashed",
+    ggplot2::geom_vline(xintercept = x$beta, linetype = "dashed",
                         colour = "grey40", linewidth = 0.4) +
     ggplot2::geom_errorbar(ggplot2::aes(xmin = .data$lo, xmax = .data$hi),
                            orientation = "y",
@@ -294,8 +301,7 @@ ssb_plot_overid <- function(x, level = 0.95, xlim = NULL, title = NULL, ...) {
     ggplot2::labs(x = expression("Just-identified estimate" ~ (hat(beta)[k])),
                   y = "Instrument (sector)",
                   title = title %||% "Overidentification: dispersion of estimates",
-                  subtitle = sprintf("Cochran's Q = %.1f on %d df, p = %.3f;  dashed = weighted mean",
-                                     x$Q, x$df, x$p)) +
+                  subtitle = sub) +
     .ssb_theme()
 }
 

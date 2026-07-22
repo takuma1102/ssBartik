@@ -1,18 +1,26 @@
 #' Run the full shift-share analysis pipeline
 #'
 #' Given a design, runs the estimation and the route-appropriate battery of
-#' diagnostics in one call, dispatching on `design$exogenous`:
+#' diagnostics in one call, dispatching on `design$exogenous`. Because the two
+#' identification routes justify *different* statistics (Borusyak-Hull-Jaravel
+#' JEP practical guide), each route reports only its own battery:
 #' \itemize{
-#'   \item **share** (Goldsmith-Pinkham, Sorkin & Swift 2020): Rotemberg-weight
-#'         decomposition, leave-one-out sensitivity, and --- if `covariates` are
-#'         supplied --- a share-balance check; a pre-trend check if `pre_y` is
-#'         supplied.
-#'   \item **shift** (Borusyak, Hull & Jaravel 2022): effective-shock /
-#'         exposure-concentration summary, leave-one-out sensitivity, and the
-#'         shock-balance hook.
+#'   \item **share** (Goldsmith-Pinkham, Sorkin & Swift 2020): conventional
+#'         (EHW / cluster) inference; Rotemberg-weight decomposition and
+#'         summary; the Sargan-Hansen overidentification test across the share
+#'         instruments; leave-one-out sensitivity; and --- if `covariates` are
+#'         supplied --- balance of the top-|Rotemberg-weight| shares.
+#'   \item **shift** (Borusyak, Hull & Jaravel 2022): exposure-robust
+#'         (AKM / AKM0) inference; the location-level / shock-level
+#'         equivalence check; the effective-shock / exposure-concentration
+#'         summary; leave-one-out sensitivity; and --- if `shock_covariates`
+#'         are supplied --- the shock-balance check.
 #' }
-#' Estimation always reports the full SE panel (naive / EHW / cluster /
-#' AKM / AKM0). The point estimate and first-stage F are common to both routes.
+#' Pre-trend ([ssb_pretrend()]) and placebo ([ssb_placebo()]) checks run on
+#' both routes when `pre_y` / `placebo_y` are supplied, with route-appropriate
+#' headline inference. Arguments belonging to the other route
+#' (`shock_covariates` on the share route, `covariates` on the shift route)
+#' are skipped with a message rather than silently mixed in.
 #'
 #' @param design An [ssb_design()] object.
 #' @param covariates Optional observables for the share-balance check (share
@@ -34,19 +42,29 @@ ssb_pipeline <- function(design, covariates = NULL, pre_y = NULL,
 
   res$estimate    <- ssb_estimate(design, level = level)
   res$first_stage <- ssb_first_stage(design)
-  res$equivalence <- ssb_equivalence(design)
-  res$overid      <- tryCatch(ssb_overid(design), error = function(e) NULL)
   res$loo         <- ssb_loo(design, top = top)
 
   if (design$exogenous == "share") {
     res$rotemberg      <- ssb_rotemberg(design)
     res$weight_summary <- ssb_weight_summary(design, covariates = covariates, top = top)
+    res$overid         <- tryCatch(ssb_overid(design), error = function(e) NULL)
     if (!is.null(covariates))
       res$share_balance <- ssb_share_balance(design, covariates, top = top)
+    if (!is.null(shock_covariates))
+      message("ssb_pipeline(): `shock_covariates` supplied on the SHARE ",
+              "route -- the shock-balance test belongs to the shift route ",
+              "and was skipped. Rebuild the design with exogenous = \"shift\" ",
+              "to run it.")
   } else {
-    res$shocks <- ssb_shock_summary(design)
+    res$equivalence <- ssb_equivalence(design)
+    res$shocks      <- ssb_shock_summary(design)
     if (!is.null(shock_covariates))
       res$shock_balance <- ssb_shock_balance(design, shock_covariates)
+    if (!is.null(covariates))
+      message("ssb_pipeline(): `covariates` supplied on the SHIFT route -- ",
+              "the share-balance test belongs to the share route and was ",
+              "skipped. Rebuild the design with exogenous = \"share\" to ",
+              "run it.")
   }
   if (!is.null(pre_y))     res$pretrend <- ssb_pretrend(design, pre_y)
   if (!is.null(placebo_y)) res$placebo  <- ssb_placebo(design, placebo_y)
@@ -58,9 +76,9 @@ ssb_pipeline <- function(design, covariates = NULL, pre_y = NULL,
 #' One-call shift-share analysis
 #'
 #' Convenience wrapper that builds an [ssb_design()] from raw pieces and runs
-#' [ssb_pipeline()] --- the "give me everything" entry point. Specify the
-#' identification route with `exogenous` and the rest flows through to
-#' diagnostics and plots.
+#' [ssb_pipeline()] --- the "give me everything" entry point. The
+#' identification route `exogenous` is **required** (see [ssb_design()]) and
+#' determines the inference and the diagnostic battery.
 #'
 #' @inheritParams ssb_design
 #' @param covariates,pre_y,placebo_y,shock_covariates,top,level Passed to
@@ -94,9 +112,13 @@ ssbartik <- function(data, shares, shocks,
                      time = NULL, controls = NULL,
                      weights = NULL, cluster = NULL,
                      share_col = "share", shock_col = "shock",
-                     exogenous = c("shift", "share"),
+                     exogenous,
                      covariates = NULL, pre_y = NULL, placebo_y = NULL,
                      shock_covariates = NULL, top = 5, level = 0.95) {
+  if (missing(exogenous))
+    stop("ssbartik(): `exogenous` must be specified -- \"shift\" for ",
+         "exogenous shocks or \"share\" for exogenous shares; see ",
+         "?ssb_design.", call. = FALSE)
   d <- ssb_design(data, shares, shocks, y = y, x = x,
                   location = location, sector = sector, time = time,
                   controls = controls, weights = weights, cluster = cluster,
@@ -118,7 +140,7 @@ print.ssb_result <- function(x, ...) {
   if (!is.null(x$weight_summary)) { cat("\n"); print(x$weight_summary) }
   if (!is.null(x$shocks))      { cat("\n"); print(x$shocks) }
   if (!is.null(x$share_balance)) {
-    cat("\n[share balance] (coef, robust t) of covariates on top shares\n")
+    cat("\n[share balance] (coef, robust t) of covariates on top-|Rotemberg-weight| shares\n")
     print(format(x$share_balance, digits = 3), row.names = FALSE)
   }
   if (!is.null(x$shock_balance)) { cat("\n"); print(x$shock_balance) }

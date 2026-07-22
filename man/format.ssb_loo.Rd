@@ -29,5 +29,5 @@ A character vector of the table lines; pass to `writeLines()`.
 }
 \description{
 Paste-ready version of the [ssb_loo()] sensitivity table (one row per dropped
-shock, with the re-estimated coefficient); the overall estimate is in a note.
+sector, with the re-estimated coefficient); the overall estimate is in a note.
 }

@@ -28,6 +28,6 @@
 A character vector of the table lines; pass to `writeLines()`.
 }
 \description{
-Paste-ready version of the [ssb_weight_summary()] table (top shocks by weight),
+Paste-ready version of the [ssb_weight_summary()] table (top share instruments by weight),
 with the largest weight and the weight/estimate/F correlations in a note.
 }

@@ -14,10 +14,11 @@ ssb_pretrend(design, pre_y, level = 0.95)
 \item{level}{Confidence level.}
 }
 \value{
-A list (class `ssb_pretrend`) with the reduced-form coefficient,
-  EHW / cluster / exposure-robust (AKM) standard errors, the corresponding
-  p-values (`p_ehw`, `p_akm`), and intervals (`conf.low`/`conf.high` use the
-  EHW SE; `conf.low_akm`/`conf.high_akm` the exposure-robust SE).
+A list (class `ssb_pretrend`) with the reduced-form coefficient and
+  the route-appropriate headline `se`, `p`, `conf.low`/`conf.high` (see
+  Details), plus all of `se_ehw` / `se_cluster` / `se_akm`, the p-values
+  `p_ehw` / `p_akm`, and the exposure-robust interval
+  `conf.low_akm`/`conf.high_akm`.
 }
 \description{
 Reduced-form regression of a pre-period outcome on the constructed instrument
@@ -28,17 +29,21 @@ outcome; pre-trends ask whether exposure predicts the outcome *before* the
 shocks, placebo asks whether the design moves an outcome it should not.
 }
 \details{
-Because the regressor is itself a shift-share variable, EHW / cluster
-standard errors are subject to exactly the over-rejection documented by
-Adao, Kolesar & Morales (2019): residuals are correlated across units with
-similar exposure. The test therefore also reports an exposure-robust
-(AKM-type) standard error that clusters the score at the shock level; treat
-that one as the headline, especially on the shift route, or spurious
-"pre-trends" will appear too often.
+The headline standard error follows the identification route of the design.
+On the **shift route** the regressor is a shift-share variable driven by
+as-good-as-random shocks, so EHW / cluster standard errors over-reject
+(Adao, Kolesar & Morales 2019); the headline `se`/`p`/interval are then
+exposure-robust (AKM-type), computed from shock-level scores with the
+shocks residualised on the shock-level controls (a constant, plus period
+fixed effects in panels) --- see [ssb_shock_iv()]. On the **share route**
+identification comes from the shares and conventional inference is
+appropriate: the headline is the design's cluster-robust SE if a `cluster`
+variable is set, and EHW otherwise. All three SEs are reported either way
+for transparency.
 }
 \examples{
 sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
 sim$data$y_pre <- stats::rnorm(nrow(sim$data))   # a pre-period outcome
-d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
-ssb_pretrend(d, pre_y = "y_pre")
+d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "shift")
+ssb_pretrend(d, pre_y = "y_pre")   # headline p is exposure-robust
 }

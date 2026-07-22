@@ -4,16 +4,21 @@
 \alias{ssb_rotemberg}
 \title{Rotemberg weights for a Bartik instrument}
 \usage{
-ssb_rotemberg(design)
+ssb_rotemberg(design, demean = TRUE)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
+
+\item{demean}{Normalise the shocks by (within-period, exposure-weighted)
+demeaning before computing the weights (default `TRUE`; see Details).
+`FALSE` reproduces the raw-shock formula.}
 }
 \value{
 A `data.frame` of class `ssb_rotemberg`, one row per sector-cell,
-  with columns `sector`, `g` (shock), `alpha` (Rotemberg weight),
-  `beta` (just-identified estimate), `F` (first-stage F of that instrument),
-  and `sign`. Carries the overall estimate `beta_hat` as an attribute.
+  with columns `sector`, `g` (shock, after any demeaning), `alpha`
+  (Rotemberg weight), `beta` (just-identified estimate), `F` (first-stage F
+  of that instrument), and `sign`. Carries the overall estimate `beta_hat`
+  and the normalisation used (`demeaned`) as attributes.
   Pass it to [ssb_plot_rotemberg()] for the canonical figure.
 }
 \description{
@@ -29,6 +34,22 @@ sector-cells are sector \eqn{\times} period pairs). The weights
 to misspecification of each sector's instrument; a small number of large
 weights is a warning sign. Unlike Goodman-Bacon weights, negative Rotemberg
 weights are not automatically problematic.
+}
+\details{
+**Normalisation.** When the exposure shares sum to one (or the sum of
+shares is controlled, as it is automatically on the shift route), adding a
+constant to every shock leaves the instrument --- and \eqn{\hat\beta} ---
+unchanged but changes the individual weights: the decomposition is unique
+only up to a normalisation of the shocks. Following Goldsmith-Pinkham,
+Sorkin & Swift and Borusyak-Hull-Jaravel, `demean = TRUE` (default)
+resolves this by demeaning the shocks with exposure weights, **within
+periods in a panel** (when the corresponding per-period constant directions
+are absorbed by the controls). If the constant is *not* absorbed
+(incomplete shares without a sum-of-shares control) the decomposition is
+already pinned down by the raw shocks; demeaning would then change it, so
+the raw shocks are kept, with a message. The just-identified estimates
+\eqn{\hat\beta_n}, the first-stage Fs and \eqn{\hat\beta} itself are
+unaffected by the normalisation --- only the weights are.
 }
 \examples{
 sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)

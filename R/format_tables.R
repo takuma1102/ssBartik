@@ -58,7 +58,7 @@
 #' Render a leave-one-out table as LaTeX or Markdown
 #'
 #' Paste-ready version of the [ssb_loo()] sensitivity table (one row per dropped
-#' shock, with the re-estimated coefficient); the overall estimate is in a note.
+#' sector, with the re-estimated coefficient); the overall estimate is in a note.
 #'
 #' @param x An [ssb_loo()] object.
 #' @inheritParams format.ssb_estimate
@@ -71,7 +71,7 @@ format.ssb_loo <- function(x, output = c("latex", "markdown"), digits = 3,
                    beta = x$beta_drop, stringsAsFactors = FALSE)
   headers <- if (output == "latex")
     c("Sector", "$\\hat\\alpha_n$", "$\\hat\\beta_{-n}$")
-  else c("Sector", "Rotemberg weight", "Estimate without shock")
+  else c("Sector", "Rotemberg weight", "Estimate without sector")
   if (all(c("conf.low", "conf.high") %in% names(x))) {
     fmt <- function(v) ifelse(is.na(v), "", formatC(v, format = "f", digits = digits))
     df$ci <- ifelse(fmt(x$conf.low) == "" & fmt(x$conf.high) == "", "",
@@ -83,7 +83,7 @@ format.ssb_loo <- function(x, output = c("latex", "markdown"), digits = 3,
   fbh  <- formatC(attr(x, "beta_hat"), format = "f", digits = digits)
   note <- if (output == "latex")
     sprintf(paste0("$\\hat\\alpha_n$ = Rotemberg weight; $\\hat\\beta_{-n}$ = ",
-                   "estimate without shock $n$. Overall estimate = %s."), fbh)
+                   "estimate without sector $n$. Overall estimate = %s."), fbh)
   else sprintf("Overall estimate = %s.", fbh)
   .ssb_df_table(df, output, headers = headers,
                 caption = caption %||% "Leave-one-out sensitivity", label = label,
@@ -128,8 +128,8 @@ format.ssb_shocks <- function(x, output = c("latex", "markdown"), digits = 3,
 
 #' Render an overidentification test as LaTeX or Markdown
 #'
-#' Paste-ready statistic/value table for the [ssb_overid()] cross-instrument
-#' homogeneity test.
+#' Paste-ready statistic/value table for the [ssb_overid()] Sargan-Hansen
+#' overidentification test.
 #'
 #' @param x An [ssb_overid()] object.
 #' @inheritParams format.ssb_estimate
@@ -138,20 +138,24 @@ format.ssb_shocks <- function(x, output = c("latex", "markdown"), digits = 3,
 format.ssb_overid <- function(x, output = c("latex", "markdown"), digits = 3,
                               caption = NULL, label = "tab:ssb-overid", ...) {
   output <- match.arg(output)
-  i2   <- if (output == "latex") sprintf("%.1f\\%%", 100 * x$I2)
-          else sprintf("%.1f%%", 100 * x$I2)
+  fj <- if (is.na(x$J)) "--" else formatC(x$J, format = "f", digits = 2)
+  fp <- if (is.na(x$p)) "--" else formatC(x$p, format = "f", digits = 4)
   stat <- if (output == "latex")
-    c("$Q$", "df", "$p$-value", "$I^2$", "Weighted mean $\\hat\\beta$", "Instruments used")
-  else c("Q", "df", "p-value", "I-squared", "Weighted mean estimate", "Instruments used")
-  val  <- c(formatC(x$Q, format = "f", digits = 2), as.character(x$df),
-            formatC(x$p, format = "f", digits = 4), i2,
-            formatC(x$beta_bar, format = "f", digits = digits),
-            as.character(x$n_instruments))
+    c("Estimator", "Estimate", "SE", "Hansen $J$", "df", "$p$-value",
+      "Instruments used")
+  else c("Estimator", "Estimate", "SE", "Hansen J", "df", "p-value",
+         "Instruments used")
+  val  <- c(toupper(x$estimator),
+            formatC(x$beta, format = "f", digits = digits),
+            formatC(x$se, format = "f", digits = digits),
+            fj, as.character(x$df), fp, as.character(x$K))
   df <- data.frame(statistic = stat, value = val, stringsAsFactors = FALSE)
   .ssb_df_table(df, output, headers = c("Statistic", "Value"), align = c("l", "r"),
-                caption = caption %||% "Overidentification test", label = label,
-                note = paste0("Small p rejects a common coefficient ",
-                              "(exogeneity failure or heterogeneity)."),
+                caption = caption %||% "Overidentification test (Sargan-Hansen)",
+                label = label,
+                note = paste0("Small p rejects the joint validity of the share ",
+                              "instruments (exclusion failure for some shares ",
+                              "or treatment-effect heterogeneity)."),
                 digits = digits)
 }
 
@@ -177,14 +181,14 @@ format.ssb_shock_balance <- function(x, output = c("latex", "markdown"),
   .ssb_df_table(df, output, headers = headers,
                 caption = caption %||% "Shock-level balance test", label = label,
                 note = sprintf(paste0("Joint Wald = %.2f on %d df, p = %.3f. ",
-                                      "Non-significant supports shock exogeneity."),
+                                      "A large p means the null of balance is not rejected; it does not establish that shocks are unrelated to observables."),
                                x$joint_wald, x$joint_df, x$joint_p),
                 digits = digits)
 }
 
 #' Render a Rotemberg-weight summary as LaTeX or Markdown
 #'
-#' Paste-ready version of the [ssb_weight_summary()] table (top shocks by weight),
+#' Paste-ready version of the [ssb_weight_summary()] table (top share instruments by weight),
 #' with the largest weight and the weight/estimate/F correlations in a note.
 #'
 #' @param x An [ssb_weight_summary()] object.

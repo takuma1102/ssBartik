@@ -4,11 +4,29 @@ NULL
 
 ## ----- small internal helpers -------------------------------------------------
 
-# Number of parameters partialled out by .ssb_resid: the intercept plus the
-# columns of the control matrix `C` (0 controls -> 1 for the intercept alone).
+# Number of parameters partialled out by .ssb_resid: the rank of the
+# residualising design [1 | C] (0 controls -> 1 for the intercept alone).
 # Used so that HC1/iid finite-sample corrections divide by n - k rather than
 # n - 1, i.e. account for the degrees of freedom consumed by the controls.
-.ssb_np <- function(C) 1L + if (is.null(C)) 0L else ncol(as.matrix(C))
+# Rank-based rather than a column count so exactly collinear columns (e.g.
+# auto-generated share-sum x period interactions overlapping user-supplied
+# period fixed effects) are not double counted.
+.ssb_np <- function(C) {
+  if (is.null(C)) return(1L)
+  qr(cbind(1, as.matrix(C)))$rank
+}
+
+# Indices of the columns of `A` that are linearly independent of `X0` (and of
+# the preceding retained columns of `A`), via pivoted QR. Used to prune
+# redundant instruments / auto controls before handing matrices to solvers.
+.ssb_indep_cols <- function(A, X0 = NULL, tol = 1e-7) {
+  A <- as.matrix(A)
+  X <- cbind(X0, A)
+  q <- qr(X, tol = tol)
+  kept <- q$pivot[seq_len(q$rank)]
+  n0 <- if (is.null(X0)) 0L else ncol(as.matrix(X0))
+  sort(kept[kept > n0] - n0)
+}
 
 # Weighted residualisation of a vector `v` on a control matrix `C` (no intercept
 # column needed; one is added). `w` are regression weights. Returns residuals in
@@ -82,7 +100,8 @@ NULL
 }
 
 # Return a copy of a design restricted to a subset of sector-cells (logical or
-# integer `keep`), recomputing the instrument, share sums and completeness.
+# integer `keep`), recomputing the instrument, share sums, completeness and the
+# route-specific automatic controls (sum-of-shares, x period FE in panels).
 .ssb_subset <- function(design, keep) {
   d <- design
   S <- d$mat$S[, keep, drop = FALSE]; g <- d$mat$g[keep]
@@ -90,8 +109,10 @@ NULL
   d$mat$z <- as.numeric(S %*% g)
   d$mat$share_sum <- rowSums(S)
   d$mat$cell_sector <- d$mat$cell_sector[keep]
+  if (!is.null(d$mat$cell_time)) d$mat$cell_time <- d$mat$cell_time[keep]
   d$mat$complete <- isTRUE(all.equal(unname(d$mat$share_sum),
                                      rep(1, nrow(S)), tolerance = 1e-6))
+  d$mat$auto_C <- .ssb_make_auto(d)
   d
 }
 

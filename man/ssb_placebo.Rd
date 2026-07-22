@@ -4,19 +4,15 @@
 \alias{ssb_placebo}
 \title{Placebo-outcome test}
 \usage{
-ssb_placebo(
-  design,
-  placebo_y,
-  methods = c("ehw", "cluster", "akm"),
-  level = 0.95
-)
+ssb_placebo(design, placebo_y, methods = NULL, level = 0.95)
 }
 \arguments{
 \item{design}{An [ssb_design()] object.}
 
 \item{placebo_y}{Column name of the placebo outcome in `data`.}
 
-\item{methods}{Standard-error methods (see [ssb_estimate()]).}
+\item{methods}{Standard-error methods (see [ssb_estimate()]); `NULL`
+(default) uses the route-appropriate methods.}
 
 \item{level}{Confidence level.}
 }

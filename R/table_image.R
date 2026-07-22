@@ -214,7 +214,7 @@ plot.ssb_weight_summary <- function(x, file = NULL, width = NULL, height = NULL,
     headers = c("Sector", "Rotemberg weight", "Just-ID estimate",
                 "First-stage F", "Shock"),
     align = c("l", "r", "r", "r", "r"), title = "Rotemberg-weight summary",
-    subtitle = sprintf("Top %d shocks by |alpha|", nrow(tp)), note = note,
+    subtitle = sprintf("Top %d share instruments by |alpha|", nrow(tp)), note = note,
     file = file, width = width, height = height, res = res, digits = digits)
 }
 
@@ -222,21 +222,23 @@ plot.ssb_weight_summary <- function(x, file = NULL, width = NULL, height = NULL,
 #' @export
 plot.ssb_overid <- function(x, file = NULL, width = NULL, height = NULL,
                             res = 200, digits = 3, ...) {
-  i2 <- sprintf("%.1f%%", 100 * x$I2)
+  fj <- if (is.na(x$J)) "--" else formatC(x$J, format = "f", digits = 2)
+  fp <- if (is.na(x$p)) "--" else formatC(x$p, format = "f", digits = 4)
   df <- data.frame(
-    statistic = c("Q", "df", "p-value", "I-squared",
-                  "Weighted mean estimate", "Instruments used"),
-    value = c(formatC(x$Q, format = "f", digits = 2), as.character(x$df),
-              formatC(x$p, format = "f", digits = 4), i2,
-              formatC(x$beta_bar, format = "f", digits = digits),
-              as.character(x$n_instruments)),
+    statistic = c("Estimator", "Estimate", "SE", "Hansen J", "df", "p-value",
+                  "Instruments used"),
+    value = c(toupper(x$estimator),
+              formatC(x$beta, format = "f", digits = digits),
+              formatC(x$se, format = "f", digits = digits),
+              fj, as.character(x$df), fp, as.character(x$K)),
     stringsAsFactors = FALSE)
   .ssb_image_table(df, headers = c("Statistic", "Value"), align = c("l", "r"),
-    title = "Overidentification test", subtitle = "Cross-instrument homogeneity",
-    note = paste0("Q = Cochran's Q. Small p rejects a common coefficient ",
-                  "(exogeneity failure or heterogeneity). The just-identified ",
-                  "estimates are mutually correlated, so the chi-square reference ",
-                  "is a heuristic screen."),
+    title = "Overidentification test", subtitle = "Sargan-Hansen J",
+    note = paste0("Small p rejects the joint validity of the share instruments ",
+                  "(exclusion failure for some shares or treatment-effect ",
+                  "heterogeneity). J uses the robust efficient-GMM weight ",
+                  "matrix, so correlation across the just-identified ",
+                  "estimates is accounted for."),
     file = file, width = width, height = height, res = res, digits = digits)
 }
 
@@ -246,7 +248,7 @@ plot.ssb_loo <- function(x, file = NULL, width = NULL, height = NULL,
                          res = 200, digits = 3, ...) {
   df <- data.frame(sector = as.character(x$sector), alpha = x$alpha,
                    beta = x$beta_drop, stringsAsFactors = FALSE)
-  headers <- c("Sector", "Rotemberg weight", "Estimate without shock")
+  headers <- c("Sector", "Rotemberg weight", "Estimate without sector")
   align   <- c("l", "r", "r")
   sub     <- sprintf("Overall estimate = %s",
                      formatC(attr(x, "beta_hat"), format = "f", digits = digits))
@@ -273,7 +275,7 @@ plot.ssb_drop_top <- function(x, file = NULL, width = NULL, height = NULL,
   .ssb_image_table(df,
     headers = c("Method", "Full", sprintf("Drop top %d", x$n)),
     align = c("l", "r", "r"),
-    title = sprintf("Estimate after dropping the top %d shocks", x$n),
+    title = sprintf("Estimate after dropping the top %d sectors", x$n),
     subtitle = sprintf("Dropped: %s", paste(utils::head(x$dropped, 8), collapse = ", ")),
     note = NULL, file = file, width = width, height = height, res = res,
     digits = digits)

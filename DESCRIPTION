@@ -1,7 +1,7 @@
 Package: ssBartik
 Type: Package
 Title: End-to-End Pipeline for Shift-Share (Bartik) Instrumental Variables
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: person("Takuma", "Iwasaki", email = "iwasakit@stanford.edu",
     role = c("aut", "cre"), comment = c(affiliation = "Stanford University"))
 Description: Construction, diagnostics, estimation, exposure-robust inference

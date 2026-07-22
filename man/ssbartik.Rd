@@ -18,7 +18,7 @@ ssbartik(
   cluster = NULL,
   share_col = "share",
   shock_col = "shock",
-  exogenous = c("shift", "share"),
+  exogenous,
   covariates = NULL,
   pre_y = NULL,
   placebo_y = NULL,
@@ -48,8 +48,10 @@ column (`shock_col`), and `time` for panels.}
 \item{controls}{Optional character vector of control columns in `data`.
 Numeric columns enter linearly; factor or character columns are expanded
 into dummies, so period or region fixed effects can be supplied as
-factors (in panel shift-share designs, period fixed effects are usually
-essential --- shocks should be compared within periods).}
+factors. On the shift route, period fixed effects (interacted with the
+sum of exposure shares) are added automatically in panels --- shocks are
+compared within periods; on the share route in panels, supply period
+fixed effects here yourself.}
 
 \item{weights}{Optional column name of regression weights in `data`.}
 
@@ -61,9 +63,11 @@ essential --- shocks should be compared within periods).}
 \item{shock_col}{Name of the shock (shift) column in `shocks` (default
 `"shock"`).}
 
-\item{exogenous}{Which identification route to emphasise downstream:
-`"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted
-aliases.}
+\item{exogenous}{**Required.** Which identification route the design rests
+on: `"shift"` (exogenous shocks) or `"share"` (exogenous shares).
+`"shock"`/`"shares"` are accepted aliases. There is no default: the route
+determines the automatic controls, the appropriate standard errors and the
+relevant diagnostics, so it must be chosen deliberately.}
 
 \item{covariates, pre_y, placebo_y, shock_covariates, top, level}{Passed to
 [ssb_pipeline()].}
@@ -73,9 +77,9 @@ An `ssb_result` object.
 }
 \description{
 Convenience wrapper that builds an [ssb_design()] from raw pieces and runs
-[ssb_pipeline()] --- the "give me everything" entry point. Specify the
-identification route with `exogenous` and the rest flows through to
-diagnostics and plots.
+[ssb_pipeline()] --- the "give me everything" entry point. The
+identification route `exogenous` is **required** (see [ssb_design()]) and
+determines the inference and the diagnostic battery.
 }
 \examples{
 # Bring your own data; this is a small synthetic design for illustration.
