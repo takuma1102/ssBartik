@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@
 </h1></div>
 <p><a href="https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/takuma1102/ssBartik/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/takuma1102/ssBartik/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a> <a href="https://CRAN.R-project.org/package=ssBartik" class="external-link"><img src="https://www.r-pkg.org/badges/version/ssBartik" alt="CRAN status"></a> <a href="https://takuma1102.r-universe.dev/ssBartik" class="external-link"><img src="https://takuma1102.r-universe.dev/ssBartik/badges/version" alt="r-universe version"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></p>
 <p>Shift-share / Bartik IV analysis in R is currently spread across several single-purpose tools, each of which has its own data conventions. <code>ssBartik</code> connects those steps into one consistent workflow: (a) construct variables → (b) diagnose → (c) estimate → (d) infer → (e) visualize, organized around the two identification routes of the modern literature (i.e., exogenous <strong>shift</strong> and exogenous <strong>share</strong> approaches).</p>
-<p>Once you pick the identification route with a single argument (<code>exogenous = "share"</code> or <code>"shift"</code>), everything downstream follows through simple functions.</p>
+<p>Once you pick the identification route with a single argument (<code>exogenous = "share"</code> or <code>"shift"</code> – <strong>required</strong>, since it fixes the inference, controls and diagnostics), everything downstream follows through simple functions.</p>
 <div class="section level2">
 <h2 id="headline-visualizations-and-tables">Headline visualizations and tables<a class="anchor" aria-label="anchor" href="#headline-visualizations-and-tables"></a>
 </h2>
@@ -95,7 +95,7 @@
 <div class="section level2">
 <h2 id="the-two-routes">The two routes<a class="anchor" aria-label="anchor" href="#the-two-routes"></a>
 </h2>
-<p>The instrument <code>z_i = Σ_n s_{in} g_n</code> is <strong>constructed identically</strong> whichever route you take. The <code>exogenous</code> flag governs which diagnostics and controls apply:</p>
+<p>The instrument <code>z_i = Σ_n s_{in} g_n</code> is <strong>constructed identically</strong> whichever route you take. The <code>exogenous</code> flag is <strong>required</strong> and governs which inference, diagnostics and controls apply – each route reports only its own battery, following the Borusyak-Hull-Jaravel JEP practical guide:</p>
 <table class="table">
 <colgroup>
 <col width="8%">
@@ -122,7 +122,7 @@
 </tr>
 <tr>
 <td>cross-instrument</td>
-<td>overidentification across β_k</td>
+<td>Sargan–Hansen J across the share instruments</td>
 <td>location ↔︎ shock IV equivalence</td>
 </tr>
 <tr>
@@ -138,15 +138,16 @@
 <tr>
 <td>extra control</td>
 <td>—</td>
-<td>sum-of-shares (auto, when incomplete)</td>
+<td>sum-of-shares (auto; × period FE in panels)</td>
 </tr>
 <tr>
-<td>inference</td>
-<td>EHW / cluster / AKM / AKM0 (iid, two-way on request)</td>
-<td>EHW / cluster / AKM / AKM0 (iid, two-way on request)</td>
+<td>inference (default)</td>
+<td>EHW / cluster (conventional)</td>
+<td>exposure-robust AKM / AKM0</td>
 </tr>
 </tbody>
 </table>
+<p>Either route accepts an explicit <code>methods = c(...)</code> in <code><a href="reference/ssb_estimate.html">ssb_estimate()</a></code> to put the conventional and exposure-robust intervals side by side.</p>
 </div>
 <div class="section level2">
 <h2 id="step-by-step-analysis">Step-by-step analysis<a class="anchor" aria-label="anchor" href="#step-by-step-analysis"></a>
@@ -159,14 +160,14 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rot</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>                           <span class="co"># see below</span></span></code></pre></div>
 <p><img src="reference/figures/weight_summary.png" alt="Rotemberg weight table"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_estimate.html">ssb_estimate</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                     <span class="co"># EHW / cluster / AKM / AKM0 (add iid/two-way on request)</span></span>
+<code class="sourceCode R"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ssb_estimate.html">ssb_estimate</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                     <span class="co"># route-appropriate SEs (share: EHW/cluster; shift: AKM/AKM0)</span></span>
 <span><span class="fu"><a href="reference/ssb_plot_ci.html">ssb_plot_ci</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/ci_patterns.png" alt="CI comparison plot"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># instrument strength &amp; internal consistency</span></span>
 <span><span class="fu"><a href="reference/ssb_first_stage.html">ssb_first_stage</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>               <span class="co"># standard robust F + exposure-robust "effective" F</span></span>
 <span><span class="fu"><a href="reference/ssb_equivalence.html">ssb_equivalence</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>               <span class="co"># location-level SSIV == shock-level IV (sanity check)</span></span>
-<span><span class="fu"><a href="reference/ssb_overid.html">ssb_overid</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                    <span class="co"># do the per-share estimates agree? (Cochran's Q)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/ssb_overid.html">ssb_overid</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>                    <span class="co"># joint validity of the share instruments (Sargan–Hansen J; share route)</span></span></code></pre></div>
 <p><img src="reference/figures/overid.png" alt="Over-identification"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># identifying-assumption checks</span></span>
@@ -266,7 +267,7 @@
 </tr></thead>
 <tbody><tr>
 <td><code><a href="reference/ssb_estimate.html">ssb_estimate()</a></code></td>
-<td>point estimate + CI: EHW/cluster/AKM/AKM0 by default, iid/two-way on request (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> paper table) (see AKM)</td>
+<td>point estimate + CI: route-appropriate SEs by default (share: EHW/cluster; shift: AKM/AKM0), others on request (+ <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> paper table) (see AKM)</td>
 </tr></tbody>
 </table>
 <p><img src="reference/figures/ci_table.png" alt="CI comparison table"></p>
@@ -305,7 +306,7 @@
 <tbody>
 <tr>
 <td><code><a href="reference/ssb_overid.html">ssb_overid()</a></code></td>
-<td>overidentification / cross-instrument homogeneity test</td>
+<td>Sargan–Hansen overidentification test (2SLS / GMM / LIML / JIVE)</td>
 </tr>
 <tr>
 <td><code><a href="reference/ssb_share_balance.html">ssb_share_balance()</a></code></td>
@@ -411,7 +412,7 @@
 <div class="section level2">
 <h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
 </h2>
-<p>When developing <code>ssBartik</code>, I gratefully referenced tools built by others: <a href="https://github.com/kolesarm/ShiftShareSE" class="external-link"><strong>ShiftShareSE</strong></a> (Michal Kolesár), <a href="https://github.com/kylebutts/ssaggregate" class="external-link"><strong>ssaggregate</strong></a> (Kyle Butts), <a href="https://github.com/jjchern/bartik.weight" class="external-link"><strong>bartik.weight</strong></a> (JJ Chern), and <a href="https://github.com/paulgp/bartik-weight" class="external-link"><strong>bartik-weight</strong></a> (Paul Goldsmith-Pinkham for Stata and R). Kudos to their authors for making these ideas legible and reproducible.</p>
+<p>When developing <code>ssBartik</code>, I gratefully referenced tools built by others: <a href="https://github.com/kolesarm/ShiftShareSE" class="external-link"><strong>ShiftShareSE</strong></a> (Michal Kolesár), <a href="https://github.com/kylebutts/ssaggregate" class="external-link"><strong>ssaggregate</strong></a> (Kyle Butts), <a href="https://github.com/jjchern/bartik.weight" class="external-link"><strong>bartik.weight</strong></a> (JJ Chern), and <a href="https://github.com/paulgp/bartik-weight" class="external-link"><strong>bartik-weight</strong></a> (Paul Goldsmith-Pinkham for Stata and R). Kudos to their authors for making these ideas legible and reproducible. I also received insightful comments from Prof. Hull, while all errors and glitches about this package are on my own.</p>
 <p>To keep the package lightweight and close to base R, <code>ssBartik</code> depends on only <code>ShiftShareSE</code>, listed under Suggests and called solely for the AKM / AKM0 exposure-robust standard errors. The other three packages above are neither imported nor called. They served purely as references and the functionality they built is reimplemented natively in <code>ssBartik</code> in base R so that external dependencies stay minimal.</p>
 </div>
 <div class="section level2">

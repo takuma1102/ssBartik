@@ -20,7 +20,8 @@ literature (i.e., exogenous **shift** and exogenous **share**
 approaches).
 
 Once you pick the identification route with a single argument
-(`exogenous = "share"` or `"shift"`), everything downstream follows
+(`exogenous = "share"` or `"shift"` – **required**, since it fixes the
+inference, controls and diagnostics), everything downstream follows
 through simple functions.
 
 ## Headline visualizations and tables
@@ -85,18 +86,24 @@ print(pipeline_analysis)                   # printed estimate + diagnostics
 ## The two routes
 
 The instrument `z_i = Σ_n s_{in} g_n` is **constructed identically**
-whichever route you take. The `exogenous` flag governs which diagnostics
-and controls apply:
+whichever route you take. The `exogenous` flag is **required** and
+governs which inference, diagnostics and controls apply – each route
+reports only its own battery, following the Borusyak-Hull-Jaravel JEP
+practical guide:
 
 | step | `exogenous = "share"` (GPSS) | `exogenous = "shift"` (AKM, BHJ) |
 |----|----|----|
 | headline diagnostic | Rotemberg weights + figure | effective shocks / exposure concentration |
 | credibility check | share balance vs. observables | shock balance vs. characteristics |
-| cross-instrument | overidentification across β_k | location ↔︎ shock IV equivalence |
+| cross-instrument | Sargan–Hansen J across the share instruments | location ↔︎ shock IV equivalence |
 | pre-period / placebo | pre-trend + placebo outcome | pre-trend + placebo outcome |
 | robustness | leave-one-out, drop-top-n, randomization inference | leave-one-out, drop-top-n, randomization inference |
-| extra control | — | sum-of-shares (auto, when incomplete) |
-| inference | EHW / cluster / AKM / AKM0 (iid, two-way on request) | EHW / cluster / AKM / AKM0 (iid, two-way on request) |
+| extra control | — | sum-of-shares (auto; × period FE in panels) |
+| inference (default) | EHW / cluster (conventional) | exposure-robust AKM / AKM0 |
+
+Either route accepts an explicit `methods = c(...)` in
+[`ssb_estimate()`](https://takuma1102.github.io/ssBartik/reference/ssb_estimate.md)
+to put the conventional and exposure-robust intervals side by side.
 
 ## Step-by-step analysis
 
@@ -115,7 +122,7 @@ plot(rot, n = 6)                           # see below
 
 ``` r
 
-est <- ssb_estimate(d)                     # EHW / cluster / AKM / AKM0 (add iid/two-way on request)
+est <- ssb_estimate(d)                     # route-appropriate SEs (share: EHW/cluster; shift: AKM/AKM0)
 ssb_plot_ci(est)
 ```
 
@@ -126,7 +133,7 @@ ssb_plot_ci(est)
 # instrument strength & internal consistency
 ssb_first_stage(d)               # standard robust F + exposure-robust "effective" F
 ssb_equivalence(d)               # location-level SSIV == shock-level IV (sanity check)
-ssb_overid(d)                    # do the per-share estimates agree? (Cochran's Q)
+ssb_overid(d)                    # joint validity of the share instruments (Sargan–Hansen J; share route)
 ```
 
 ![Over-identification](reference/figures/overid.png)
@@ -214,7 +221,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----|----|
-| [`ssb_estimate()`](https://takuma1102.github.io/ssBartik/reference/ssb_estimate.md) | point estimate + CI: EHW/cluster/AKM/AKM0 by default, iid/two-way on request (+ [`format()`](https://rdrr.io/r/base/format.html) paper table) (see AKM) |
+| [`ssb_estimate()`](https://takuma1102.github.io/ssBartik/reference/ssb_estimate.md) | point estimate + CI: route-appropriate SEs by default (share: EHW/cluster; shift: AKM/AKM0), others on request (+ [`format()`](https://rdrr.io/r/base/format.html) paper table) (see AKM) |
 
 ![CI comparison table](reference/figures/ci_table.png)
 
@@ -227,7 +234,7 @@ plot(rot, file = "rotemberg_table.png")    # compact booktabs image (.png/.pdf);
 
 | function | purpose |
 |----|----|
-| [`ssb_overid()`](https://takuma1102.github.io/ssBartik/reference/ssb_overid.md) | overidentification / cross-instrument homogeneity test |
+| [`ssb_overid()`](https://takuma1102.github.io/ssBartik/reference/ssb_overid.md) | Sargan–Hansen overidentification test (2SLS / GMM / LIML / JIVE) |
 | [`ssb_share_balance()`](https://takuma1102.github.io/ssBartik/reference/ssb_share_balance.md) | share-vs-observables balance (share route) |
 | [`ssb_shock_balance()`](https://takuma1102.github.io/ssBartik/reference/ssb_shock_balance.md) | shock-vs-characteristics balance (shift route) |
 | [`ssb_pretrend()`](https://takuma1102.github.io/ssBartik/reference/ssb_pretrend.md) | pre-trend test (reduced form of a pre-period outcome on the instrument) |
@@ -289,7 +296,9 @@ Butts), [**bartik.weight**](https://github.com/jjchern/bartik.weight)
 (JJ Chern), and
 [**bartik-weight**](https://github.com/paulgp/bartik-weight) (Paul
 Goldsmith-Pinkham for Stata and R). Kudos to their authors for making
-these ideas legible and reproducible.
+these ideas legible and reproducible. I also received insightful
+comments from Prof. Hull, while all errors and glitches about this
+package are on my own.
 
 To keep the package lightweight and close to base R, `ssBartik` depends
 on only `ShiftShareSE`, listed under Suggests and called solely for the

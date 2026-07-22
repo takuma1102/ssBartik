@@ -1,19 +1,28 @@
 # Run the full shift-share analysis pipeline
 
 Given a design, runs the estimation and the route-appropriate battery of
-diagnostics in one call, dispatching on \`design\$exogenous\`:
+diagnostics in one call, dispatching on \`design\$exogenous\`. Because
+the two identification routes justify \*different\* statistics
+(Borusyak-Hull-Jaravel JEP practical guide), each route reports only its
+own battery:
 
-- \*\*share\*\* (Goldsmith-Pinkham, Sorkin & Swift 2020):
-  Rotemberg-weight decomposition, leave-one-out sensitivity, and — if
-  \`covariates\` are supplied — a share-balance check; a pre-trend check
-  if \`pre_y\` is supplied.
+- \*\*share\*\* (Goldsmith-Pinkham, Sorkin & Swift 2020): conventional
+  (EHW / cluster) inference; Rotemberg-weight decomposition and summary;
+  the Sargan-Hansen overidentification test across the share
+  instruments; leave-one-out sensitivity; and — if \`covariates\` are
+  supplied — balance of the top-\|Rotemberg-weight\| shares.
 
-- \*\*shift\*\* (Borusyak, Hull & Jaravel 2022): effective-shock /
-  exposure-concentration summary, leave-one-out sensitivity, and the
-  shock-balance hook.
+- \*\*shift\*\* (Borusyak, Hull & Jaravel 2022): exposure-robust (AKM /
+  AKM0) inference; the location-level / shock-level equivalence check;
+  the effective-shock / exposure-concentration summary; leave-one-out
+  sensitivity; and — if \`shock_covariates\` are supplied — the
+  shock-balance check.
 
-Estimation always reports the full SE panel (naive / EHW / cluster / AKM
-/ AKM0). The point estimate and first-stage F are common to both routes.
+Pre-trend (\[ssb_pretrend()\]) and placebo (\[ssb_placebo()\]) checks
+run on both routes when \`pre_y\` / \`placebo_y\` are supplied, with
+route-appropriate headline inference. Arguments belonging to the other
+route (\`shock_covariates\` on the share route, \`covariates\` on the
+shift route) are skipped with a message rather than silently mixed in.
 
 ## Usage
 

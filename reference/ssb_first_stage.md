@@ -32,5 +32,5 @@ d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
 ssb_first_stage(d)
 #> <ssBartik first-stage strength>
 #>   standard robust F         : 19.8
-#>   effective (exposure) F    : 45.6
+#>   effective (exposure) F    : 67.0
 ```

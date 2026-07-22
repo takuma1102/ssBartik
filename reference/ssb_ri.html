@@ -13,7 +13,7 @@ Borusyak &amp;amp; Hull."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,6 +97,17 @@ itself (holding the observed treatment fixed) would *not* be exact — the
 treatment also responds to the shocks through the first stage, and placebo
 draws with weak first stages give the ratio very heavy tails — so this
 function does not do that.</p>
+<p>**The exchangeability assumption is stronger than shocks being
+as-good-as-random.** Permutation validity requires the shocks (within a
+`block`) to be *exchangeable* — in particular, identically distributed up
+to reordering. The Borusyak-Hull-Jaravel framework only assumes shocks are
+as-good-as-randomly assigned (mean-independent of the unobservables), which
+allows their variances and higher moments to differ across cells; under
+that weaker assumption randomization inference can over- or under-reject.
+Use `block` to group shocks that are plausibly comparable draws (and to
+keep permutations within periods in panels), and treat the RI p-value as a
+complement to — not a substitute for — the exposure-robust inference in
+[ssb_estimate()] / [ssb_shock_iv()].</p>
     </div>
 
     <div class="section level2">
@@ -108,6 +119,9 @@ function does not do that.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   IV estimate   : 1.4468   (H0: beta = 0.000)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   AR statistic  : 1.4664   (reduced form of y - beta0*x on the instrument)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   RI p-value    : 0.0300   (199 permutations)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   note: valid if shocks are EXCHANGEABLE (within blocks) -- stronger than</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         the as-good-as-random assumption of Borusyak-Hull-Jaravel, which</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         allows shock variances to differ; see ?ssb_ri</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

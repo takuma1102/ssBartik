@@ -1,7 +1,7 @@
 # Render an overidentification test as LaTeX or Markdown
 
-Paste-ready statistic/value table for the \[ssb_overid()\]
-cross-instrument homogeneity test.
+Paste-ready statistic/value table for the \[ssb_overid()\] Sargan-Hansen
+overidentification test.
 
 ## Usage
 

@@ -26,7 +26,7 @@ instructive.
 ``` r
 ssb_estimate(
   design,
-  methods = c("ehw", "cluster", "akm", "akm0"),
+  methods = NULL,
   level = 0.95,
   cluster2 = NULL,
   shock_cluster = NULL
@@ -41,10 +41,11 @@ ssb_estimate(
 
 - methods:
 
-  Which methods to report. Defaults to \`ehw\`, \`cluster\`, \`akm\`,
-  \`akm0\`; add \`"iid"\` (homoskedastic) and/or \`"twoway"\` for
-  two-way clustering. \`cluster\` needs the design's \`cluster\` column
-  (else \`NA\`).
+  Which methods to report. \`NULL\` (default) resolves by the design's
+  route: \`c("ehw", "cluster")\` on the share route (dropping
+  \`cluster\` if no cluster variable is set), \`c("akm", "akm0")\` on
+  the shift route. Supply a character vector of \`"iid"\`, \`"ehw"\`,
+  \`"cluster"\`, \`"twoway"\`, \`"akm"\`, \`"akm0"\` to override.
 
 - level:
 
@@ -62,14 +63,18 @@ ssb_estimate(
   shock-cells. Use it when shocks are mutually correlated within groups
   — e.g. sub-industries within broader industries, or sector cells of
   the same sector across periods — so the exposure-robust variance is
-  clustered at the group level (Adao, Kolesar & Morales 2019; passed to
-  ShiftShareSE as \`sector_cvar\`).
+  clustered at the group level (Adao, Kolesar & Morales 2019). It is
+  passed to ShiftShareSE as \`sector_cvar\`, which clusters the
+  shock-level scores; the package's test suite verifies this against a
+  hand-computed cluster-robust shock-level regression, so the grouping
+  is genuinely used rather than shocks being treated as independent.
 
 ## Value
 
 A \`data.frame\` of class \`ssb_estimate\` with one row per method
 (\`estimate\`, \`std.error\`, \`conf.low\`, \`conf.high\`), carrying the
-first-stage F as an attribute. Plot with \[ssb_plot_ci()\].
+first-stage F and the identification route as attributes. Plot with
+\[ssb_plot_ci()\].
 
 ## Details
 
@@ -85,32 +90,38 @@ at all: it can be the whole real line or the complement of an interval
 conf.high\`; \`ssb_estimate()\` flags both cases in the \`note\` column
 and the table/plot methods render them accordingly.
 
-The default panel is \`ehw\` / \`cluster\` / \`akm\` / \`akm0\`: two
-classical robust SEs (heteroskedasticity- and cluster-robust) shown next
-to the two exposure-robust AKM / AKM0 intervals. \`iid\` (homoskedastic)
-and \`twoway\` are not in the default; request them explicitly via
-\`methods\` when wanted (e.g. \`methods = c("iid", "ehw", "cluster",
-"twoway", "akm", "akm0")\`, adding \`cluster2\` for two-way clustering).
-The \`cluster\` row needs a \`cluster\` column in the design (set via
-\[ssb_design()\]); without one it is reported as \`NA\` with a note
-rather than an error.
+\*\*The default methods follow the identification route of the
+design\*\* (Borusyak-Hull-Jaravel JEP practical guide):
+
+- \`exogenous = "share"\` (Goldsmith-Pinkham-Sorkin-Swift):
+  identification comes from the shares, and conventional inference is
+  appropriate — the default is \`ehw\` plus \`cluster\` when the design
+  has a \`cluster\` variable.
+
+- \`exogenous = "shift"\` (Borusyak-Hull-Jaravel; Adao-Kolesar-Morales):
+  with as-good-as-random shocks, conventional EHW / cluster standard
+  errors over-reject because residuals are correlated across units with
+  similar exposure — the default is the exposure-robust panel \`akm\` /
+  \`akm0\`.
+
+Supplying \`methods\` explicitly overrides the default, e.g. to place
+the conventional and exposure-robust intervals side by side for a
+methodological comparison; the printed table always states the route so
+the headline inference is unambiguous. \`iid\` (homoskedastic) and
+\`twoway\` are only reported on request (add \`cluster2\` for two-way
+clustering). The \`cluster\` row needs a \`cluster\` column in the
+design (set via \[ssb_design()\]); without one it is reported as \`NA\`
+with a note rather than an error.
 
 ## Examples
 
 ``` r
 sim <- ssb_simulate(n_loc = 80, n_sec = 10, seed = 1)
 d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
-ssb_estimate(d)
+ssb_estimate(d)   # share route: conventional (EHW) inference
 #> <ssBartik estimate>
+#>   route         : exogenous SHARE -> conventional (EHW / cluster) inference
 #>   first-stage F : 19.8
-#>         method estimate std.error conf.low conf.high
-#>            EHW     1.45     0.199     1.06      1.84
-#>  Clustering SE     1.45        NA       NA        NA
-#>            AKM     1.45     0.105     1.24      1.65
-#>           AKM0     1.45       Inf     -Inf       Inf
-#>                            note
-#>                                
-#>                  no cluster var
-#>                                
-#>  unbounded CI (weak instrument)
+#>  method estimate std.error conf.low conf.high note
+#>     EHW     1.45     0.199     1.06      1.84     
 ```

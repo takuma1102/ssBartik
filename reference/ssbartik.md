@@ -1,9 +1,10 @@
 # One-call shift-share analysis
 
 Convenience wrapper that builds an \[ssb_design()\] from raw pieces and
-runs \[ssb_pipeline()\] — the "give me everything" entry point. Specify
-the identification route with \`exogenous\` and the rest flows through
-to diagnostics and plots.
+runs \[ssb_pipeline()\] — the "give me everything" entry point. The
+identification route \`exogenous\` is \*\*required\*\* (see
+\[ssb_design()\]) and determines the inference and the diagnostic
+battery.
 
 ## Usage
 
@@ -22,7 +23,7 @@ ssbartik(
   cluster = NULL,
   share_col = "share",
   shock_col = "shock",
-  exogenous = c("shift", "share"),
+  exogenous,
   covariates = NULL,
   pre_y = NULL,
   placebo_y = NULL,
@@ -67,9 +68,11 @@ ssbartik(
 
   Optional character vector of control columns in \`data\`. Numeric
   columns enter linearly; factor or character columns are expanded into
-  dummies, so period or region fixed effects can be supplied as factors
-  (in panel shift-share designs, period fixed effects are usually
-  essential — shocks should be compared within periods).
+  dummies, so period or region fixed effects can be supplied as factors.
+  On the shift route, period fixed effects (interacted with the sum of
+  exposure shares) are added automatically in panels — shocks are
+  compared within periods; on the share route in panels, supply period
+  fixed effects here yourself.
 
 - weights:
 
@@ -89,9 +92,12 @@ ssbartik(
 
 - exogenous:
 
-  Which identification route to emphasise downstream: \`"shift"\`
-  (shocks) or \`"share"\` (shares). \`"shock"\`/\`"shares"\` are
-  accepted aliases.
+  \*\*Required.\*\* Which identification route the design rests on:
+  \`"shift"\` (exogenous shocks) or \`"share"\` (exogenous shares).
+  \`"shock"\`/\`"shares"\` are accepted aliases. There is no default:
+  the route determines the automatic controls, the appropriate standard
+  errors and the relevant diagnostics, so it must be chosen
+  deliberately.
 
 - covariates, pre_y, placebo_y, shock_covariates, top, level:
 
@@ -119,66 +125,62 @@ dat <- data.frame(location = seq_len(n_loc),
                   x = 4 * inst + stats::rnorm(n_loc, sd = 0.3))
 dat$y <- 1.2 * dat$x + stats::rnorm(n_loc, sd = 0.3)
 res <- ssbartik(dat, shares, shocks, exogenous = "share")
+#> ssb_overid(): estimator = 'auto' resolved to 'liml' (K = 7 instruments, n = 60; see ?ssb_overid).
 res
 #> == ssBartik result ==============================================
 #> route : exogenous SHARE
 #> 
 #> <ssBartik estimate>
+#>   route         : exogenous SHARE -> conventional (EHW / cluster) inference
 #>   first-stage F : 324.9
-#>         method estimate std.error conf.low conf.high           note
-#>            EHW     1.23    0.0382     1.15      1.30               
-#>  Clustering SE     1.23        NA       NA        NA no cluster var
-#>            AKM     1.23    0.0268     1.17      1.28               
-#>           AKM0     1.23    0.3156     1.09      2.33               
+#>  method estimate std.error conf.low conf.high note
+#>     EHW     1.23    0.0382     1.15       1.3     
 #> 
 #> <ssBartik first-stage strength>
 #>   standard robust F         : 324.9
-#>   effective (exposure) F    : 1168.7
+#>   effective (exposure) F    : 1308.9
 #> 
-#> <ssBartik equivalence check>
-#>   location-level SSIV : 1.226347
-#>   shock-level IV      : 1.226347
-#>   |difference|        : 0.00e+00  (match)
-#> 
-#> <ssBartik overidentification test (cross-instrument homogeneity)>
-#>   Q = 5.30 on 7 df,  p = 0.6235
-#>   I^2 = 0.0%   precision-weighted mean beta = 1.2230
-#>   instruments used: 8 (dropped 0; 4 weak, F<10)
-#>   small p => reject a common coefficient (exogeneity failure OR heterogeneity)
-#>   (heuristic: the beta_k are mutually correlated, so the chi-square reference is approximate)
+#> <ssBartik overidentification test (Sargan-Hansen)>
+#>   estimator : LIML over 7 share instruments (1 collinear dropped)
+#>   beta = 1.2218   se = 0.0396   [1.144, 1.300]
+#>   Hansen J = 5.15 on 6 df,  p = 0.5242
+#>   instruments dropped: 0 (min_F / degenerate); weak (F<10): 4
+#>   small p => reject joint validity of the share instruments
+#>   (exclusion failure for some shares OR treatment-effect heterogeneity)
 #> 
 #> <ssBartik Rotemberg weights>
 #>   overall beta_hat : 1.2263
 #>   sum positive alpha : 1.000   sum negative alpha : 0.000
-#>   largest weight   : alpha = 0.462 (6)
-#>   ! one shock carries |alpha| = 0.46; check robustness via ssb_drop_top()
+#>   largest weight   : alpha = 0.439 (6)
+#>   ! one share instrument carries |alpha| = 0.44; check robustness via ssb_drop_top()
+#>   shocks demeaned (overall, exposure-weighted) before weighting -- GPSS/BHJ normalisation
 #>   top 5 sectors by |alpha|:
 #>  sector  alpha beta     F
-#>       6 0.4620 1.21 36.89
-#>       5 0.1370 1.32 12.01
-#>       2 0.1227 1.11 10.41
-#>       1 0.1003 1.34 11.99
-#>       4 0.0888 1.27  6.02
+#>       6 0.4390 1.21 36.89
+#>       5 0.1488 1.32 12.01
+#>       2 0.1346 1.11 10.41
+#>       1 0.1144 1.34 11.99
+#>       4 0.0788 1.27  6.02
 #>   (negative weights are not by themselves a red flag; see GPSS 2020)
 #> 
 #> <ssBartik Rotemberg-weight summary>
-#>   largest weight: alpha = 0.462 (6)
-#>   cor(alpha, beta_k) = -0.21   cor(alpha, F) = 0.98
-#>   top shocks by |alpha|:
+#>   largest weight: alpha = 0.439 (6)
+#>   cor(alpha, beta_k) = -0.22   cor(alpha, F) = 0.99
+#>   top share instruments by |alpha|:
 #>  sector  alpha beta     F      g
-#>       6 0.4620 1.21 36.89 -2.000
-#>       5 0.1370 1.32 12.01  1.163
-#>       2 0.1227 1.11 10.41  1.034
-#>       1 0.1003 1.34 11.99  0.707
-#>       4 0.0888 1.27  6.02 -0.879
+#>       6 0.4390 1.21 36.89 -1.901
+#>       5 0.1488 1.32 12.01  1.263
+#>       2 0.1346 1.11 10.41  1.134
+#>       1 0.1144 1.34 11.99  0.807
+#>       4 0.0788 1.27  6.02 -0.779
 #> 
 #> [leave-one-out] overall beta = 1.2263 
 #>  sector  alpha beta_drop
-#>       6 0.4620      1.24
-#>       5 0.1370      1.21
-#>       2 0.1227      1.24
-#>       1 0.1003      1.21
-#>       4 0.0888      1.22
+#>       6 0.4390      1.24
+#>       5 0.1488      1.21
+#>       2 0.1346      1.24
+#>       1 0.1144      1.21
+#>       4 0.0788      1.22
 #> =================================================================
 # \donttest{
 autoplot(res)                       # headline Rotemberg figure

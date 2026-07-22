@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,40 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="ssbartik-020">ssBartik 0.2.0<a class="anchor" aria-label="anchor" href="#ssbartik-020"></a></h2>
+<div class="section level3">
+<h3 id="changes-0-2-0">Changes<a class="anchor" aria-label="anchor" href="#changes-0-2-0"></a></h3>
+<ul><li>
+<code><a href="../reference/ssb_design.html">ssb_design()</a></code> / <code><a href="../reference/ssbartik.html">ssbartik()</a></code>: <code>exogenous</code> is now <strong>required</strong> (no default). The identification route fixes the automatic controls, the standard errors and the diagnostics, so it must be chosen deliberately.</li>
+<li>
+<code><a href="../reference/ssb_estimate.html">ssb_estimate()</a></code> (and <code><a href="../reference/ssb_placebo.html">ssb_placebo()</a></code>, <code><a href="../reference/ssb_drop_top.html">ssb_drop_top()</a></code>): the default <code>methods</code> now follow the route – conventional <code>ehw</code> (+ <code>cluster</code> when a cluster variable is set) on the share route, exposure-robust <code>akm</code> / <code>akm0</code> on the shift route. Explicit <code>methods = c(...)</code> still overrides, and the printed table names the route. (Review point 1.)</li>
+<li>
+<code><a href="../reference/ssb_overid.html">ssb_overid()</a></code> now reports a <strong>Sargan–Hansen J</strong> from efficient two-step GMM with a robust (or cluster-robust) weight matrix, replacing the precision-weighted Cochran Q, which treated the mutually correlated just-identified estimates as independent. Estimators of the common coefficient: <code>"2sls"</code>, efficient <code>"gmm"</code>, and the many-instrument-robust <code>"liml"</code> / <code>"jive"</code> (<code>"auto"</code> picks between 2SLS and LIML by K/n). Collinear residualised shares are pruned automatically (complete designs use K−1 instruments, df = K−2). Output fields changed accordingly; <code><a href="../reference/ssb_plot_overid.html">ssb_plot_overid()</a></code>, <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> methods updated. (Point 3.)</li>
+<li>
+<code><a href="../reference/ssb_pipeline.html">ssb_pipeline()</a></code> reports only route-appropriate statistics: Rotemberg weights / weight summary / overidentification / share balance on the share route; equivalence / shock summary / shock balance on the shift route. Arguments belonging to the other route are skipped with a message. (Point 2.)</li>
+<li>
+<code><a href="../reference/ssb_share_balance.html">ssb_share_balance()</a></code> now tests the sectors with the largest <strong>|Rotemberg weight|</strong> (the shares that drive the estimate), not the largest average exposure, and returns their <code>alpha</code>. (Point 4.)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="methodology-fixes-0-2-0">Methodology fixes<a class="anchor" aria-label="anchor" href="#methodology-fixes-0-2-0"></a></h3>
+<ul><li>Exposure-robust (shock-level) variances in <code><a href="../reference/ssb_shock_iv.html">ssb_shock_iv()</a></code>, <code><a href="../reference/ssb_first_stage.html">ssb_first_stage()</a></code> and <code><a href="../reference/ssb_pretrend.html">ssb_pretrend()</a></code> now use the shocks <strong>residualised on the shock-level controls</strong> (a constant, plus period fixed effects in panels) with exposure weights, instead of the raw shocks. Point estimates are unchanged; standard errors are corrected, and now match ShiftShareSE’s AKM variance / the BHJ <code>ssaggregate</code> workflow exactly (verified in the test suite). (Point 7.)</li>
+<li>Shift-route <strong>panels</strong> now automatically control the sum of exposure shares <strong>interacted with period fixed effects</strong> (reducing to period FE under complete shares); controlling only the overall sum is not sufficient in panels. Auto columns are pruned of anything the user’s controls already span, and the location-/shock-level equivalence is now exact in panels. (Point 6.)</li>
+<li>
+<code><a href="../reference/ssb_rotemberg.html">ssb_rotemberg()</a></code> gains <code>demean = TRUE</code>: shocks are demeaned with exposure weights (within periods in panels) whenever the corresponding constant directions are absorbed by the controls, resolving the normalisation non-uniqueness of the decomposition; the weights are now invariant to adding constants to the shocks. β̂, the per-instrument estimates and Fs are unaffected. (Point 5.)</li>
+<li>
+<code><a href="../reference/ssb_pretrend.html">ssb_pretrend()</a></code> is route-aware: the headline <code>se</code> / <code>p</code> / interval are exposure-robust on the shift route and conventional (cluster / EHW) on the share route, with all three SEs still reported. (Point 2.)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="verification-wording-docs-0-2-0">Verification, wording, docs<a class="anchor" aria-label="anchor" href="#verification-wording-docs-0-2-0"></a></h3>
+<ul><li>
+<code>ssb_estimate(shock_cluster = )</code> was <strong>verified</strong> to genuinely cluster the shocks: it reaches ShiftShareSE’s <code>sector_cvar</code> and matches a hand-computed cluster-robust shock-level regression; a regression test pins this down. <code>ssb_shock_iv(cluster = )</code> now also accepts a shocks-table column name. (Point 8.)</li>
+<li>
+<code><a href="../reference/ssb_ri.html">ssb_ri()</a></code> documents (and prints) that randomization inference requires shocks to be <strong>exchangeable</strong> within blocks – a stronger assumption than BHJ as-good-as-random, which allows heteroskedastic shocks. (Point 9.)</li>
+<li>Shock-balance output no longer states that a non-significant test shows shocks are “unrelated to observables”; it reports that the null of balance is not rejected. (Point 10.)</li>
+<li>Terminology: high-weight <em>share instruments</em> (sectors), not “shocks”, across <code><a href="../reference/ssb_weight_summary.html">ssb_weight_summary()</a></code>, <code><a href="../reference/ssb_loo.html">ssb_loo()</a></code>, <code><a href="../reference/ssb_drop_top.html">ssb_drop_top()</a></code> output and plots. (Point 5.)</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="ssbartik-011">ssBartik 0.1.1<a class="anchor" aria-label="anchor" href="#ssbartik-011"></a></h2><p class="text-muted">CRAN release: 2026-07-19</p>
 <p>First release. An end-to-end toolkit for shift-share (Bartik) instrumental variables, spanning both identification routes (exogenous shares and exogenous shocks) from instrument construction through estimation, inference, and credibility diagnostics.</p>
 <ul><li>Estimation: <code><a href="../reference/ssb_design.html">ssb_design()</a></code>, <code><a href="../reference/ssbartik.html">ssbartik()</a></code>, and <code><a href="../reference/ssb_estimate.html">ssb_estimate()</a></code>, reporting a panel of confidence intervals (IID, EHW, and exposure-robust AKM / AKM0 by default; cluster and two-way available on request).</li>
@@ -41,7 +75,8 @@
 <li>Credibility checks: <code><a href="../reference/ssb_first_stage.html">ssb_first_stage()</a></code>, <code><a href="../reference/ssb_overid.html">ssb_overid()</a></code>, <code><a href="../reference/ssb_share_balance.html">ssb_share_balance()</a></code>, <code><a href="../reference/ssb_shock_balance.html">ssb_shock_balance()</a></code>, <code><a href="../reference/ssb_pretrend.html">ssb_pretrend()</a></code>, <code><a href="../reference/ssb_placebo.html">ssb_placebo()</a></code>, <code><a href="../reference/ssb_ri.html">ssb_ri()</a></code>.</li>
 <li>Output: <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> / <code>ssb_plot_*()</code> figures (including the <code><a href="../reference/ssb_plot_ci.html">ssb_plot_ci()</a></code> interval comparison), and paste-ready tables via <code>format(x, "latex" / "markdown")</code> and a rendered <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> for the Rotemberg table.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

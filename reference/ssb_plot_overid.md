@@ -2,11 +2,12 @@
 
 Forest plot of the just-identified estimates \\\hat\beta_k\\ (one per
 instrument) with confidence intervals, ordered by size, against the
-precision-weighted mean (dashed line). Wide, mutually inconsistent
+overidentified estimate (dashed line). Wide, mutually inconsistent
 estimates signal a failure of the exogeneity assumption or
-treatment-effect heterogeneity (see \[ssb_overid()\]). Point size is the
-first-stage F; the axis is trimmed to the bulk since weak instruments
-have very wide intervals.
+treatment-effect heterogeneity; the formal test is the Sargan-Hansen J
+in the subtitle (see \[ssb_overid()\]). Point size is the first-stage F;
+the axis is trimmed to the bulk since weak instruments have very wide
+intervals.
 
 ## Usage
 

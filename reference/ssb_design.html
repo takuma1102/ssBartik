@@ -17,7 +17,7 @@ object flows directly into diagnostics ([ssb_rotemberg()],
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@ object flows directly into diagnostics ([ssb_rotemberg()],
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  share_col <span class="op">=</span> <span class="st">"share"</span>,</span>
 <span>  shock_col <span class="op">=</span> <span class="st">"shock"</span>,</span>
-<span>  exogenous <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shift"</span>, <span class="st">"share"</span><span class="op">)</span></span>
+<span>  <span class="va">exogenous</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -109,8 +109,10 @@ column (`shock_col`), and `time` for panels.</p></dd>
 <dd><p>Optional character vector of control columns in `data`.
 Numeric columns enter linearly; factor or character columns are expanded
 into dummies, so period or region fixed effects can be supplied as
-factors (in panel shift-share designs, period fixed effects are usually
-essential — shocks should be compared within periods).</p></dd>
+factors. On the shift route, period fixed effects (interacted with the
+sum of exposure shares) are added automatically in panels — shocks are
+compared within periods; on the share route in panels, supply period
+fixed effects here yourself.</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
@@ -132,9 +134,11 @@ essential — shocks should be compared within periods).</p></dd>
 
 
 <dt id="arg-exogenous">exogenous<a class="anchor" aria-label="anchor" href="#arg-exogenous"></a></dt>
-<dd><p>Which identification route to emphasise downstream:
-`"shift"` (shocks) or `"share"` (shares). `"shock"`/`"shares"` are accepted
-aliases.</p></dd>
+<dd><p>**Required.** Which identification route the design rests
+on: `"shift"` (exogenous shocks) or `"share"` (exogenous shares).
+`"shock"`/`"shares"` are accepted aliases. There is no default: the route
+determines the automatic controls, the appropriate standard errors and the
+relevant diagnostics, so it must be chosen deliberately.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -144,12 +148,23 @@ aliases.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The **instrument is constructed identically** whichever identification route
-you take; the `exogenous` argument only governs which *diagnostics* and
-*controls* are appropriate downstream (see [ssb_pipeline()]). Set
-`exogenous = "share"` for the exogenous-shares route (Goldsmith-Pinkham,
-Sorkin and Swift 2020; Rotemberg-weight diagnostics) or `exogenous = "shift"`
-for the exogenous-shocks route (Borusyak, Hull and Jaravel 2022; Adao,
-Kolesar and Morales 2019; shock-level diagnostics and AKM inference).</p>
+you take; the `exogenous` argument governs which *inference*, *diagnostics*
+and *controls* are appropriate downstream (see [ssb_estimate()],
+[ssb_pipeline()]). Set `exogenous = "share"` for the exogenous-shares route
+(Goldsmith-Pinkham, Sorkin and Swift 2020; Rotemberg-weight diagnostics and
+conventional inference) or `exogenous = "shift"` for the exogenous-shocks
+route (Borusyak, Hull and Jaravel 2022; Adao, Kolesar and Morales 2019;
+shock-level diagnostics and exposure-robust inference). Because the route is
+an identification assumption, it **must be specified explicitly** – there
+is no default.</p>
+<p>On the shift route the package adds the Borusyak-Hull-Jaravel controls
+automatically: with incomplete shares the per-unit **sum of exposure
+shares**, and in panels that sum **interacted with period fixed effects**
+(controlling only the overall sum is not enough in a panel – shocks must be
+compared within periods; with complete shares the interaction reduces to
+period fixed effects). These automatic columns are pruned of anything
+already spanned by your own `controls`, so supplying period fixed effects
+yourself is harmless.</p>
     </div>
 
     <div class="section level2">

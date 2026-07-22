@@ -17,7 +17,7 @@ shocks, placebo asks whether the design moves an outcome it should not."></head>
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,34 +75,40 @@ shocks, placebo asks whether the design moves an outcome it should not.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list (class `ssb_pretrend`) with the reduced-form coefficient,
-  EHW / cluster / exposure-robust (AKM) standard errors, the corresponding
-  p-values (`p_ehw`, `p_akm`), and intervals (`conf.low`/`conf.high` use the
-  EHW SE; `conf.low_akm`/`conf.high_akm` the exposure-robust SE).</p>
+    <p>A list (class `ssb_pretrend`) with the reduced-form coefficient and
+  the route-appropriate headline `se`, `p`, `conf.low`/`conf.high` (see
+  Details), plus all of `se_ehw` / `se_cluster` / `se_akm`, the p-values
+  `p_ehw` / `p_akm`, and the exposure-robust interval
+  `conf.low_akm`/`conf.high_akm`.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Because the regressor is itself a shift-share variable, EHW / cluster
-standard errors are subject to exactly the over-rejection documented by
-Adao, Kolesar &amp; Morales (2019): residuals are correlated across units with
-similar exposure. The test therefore also reports an exposure-robust
-(AKM-type) standard error that clusters the score at the shock level; treat
-that one as the headline, especially on the shift route, or spurious
-"pre-trends" will appear too often.</p>
+    <p>The headline standard error follows the identification route of the design.
+On the **shift route** the regressor is a shift-share variable driven by
+as-good-as-random shocks, so EHW / cluster standard errors over-reject
+(Adao, Kolesar &amp; Morales 2019); the headline `se`/`p`/interval are then
+exposure-robust (AKM-type), computed from shock-level scores with the
+shocks residualised on the shock-level controls (a constant, plus period
+fixed effects in panels) — see [ssb_shock_iv()]. On the **share route**
+identification comes from the shares and conventional inference is
+appropriate: the headline is the design's cluster-robust SE if a `cluster`
+variable is set, and EHW otherwise. All three SEs are reported either way
+for transparency.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_simulate.html">ssb_simulate</a></span><span class="op">(</span>n_loc <span class="op">=</span> <span class="fl">80</span>, n_sec <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sim</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">y_pre</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span><span class="op">)</span><span class="op">)</span>   <span class="co"># a pre-period outcome</span></span></span>
-<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_design.html">ssb_design</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shares</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shocks</span>, exogenous <span class="op">=</span> <span class="st">"share"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ssb_pretrend</span><span class="op">(</span><span class="va">d</span>, pre_y <span class="op">=</span> <span class="st">"y_pre"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_design.html">ssb_design</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shares</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shocks</span>, exogenous <span class="op">=</span> <span class="st">"shift"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ssb_pretrend</span><span class="op">(</span><span class="va">d</span>, pre_y <span class="op">=</span> <span class="st">"y_pre"</span><span class="op">)</span>   <span class="co"># headline p is exposure-robust</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ssBartik pre-trend test (reduced form on instrument)&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   pre-period outcome : y_pre</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   coef 0.0988</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   se   : EHW 0.2049 | cluster NA | exposure-robust (AKM) 0.0581</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   p    : EHW 0.630 | exposure-robust 0.089</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   (the regressor is shift-share: EHW over-rejects, use the exposure-robust p)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   se   : EHW 0.2049 | cluster NA | exposure-robust (AKM) 0.0491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   headline (exogenous SHIFT) : se 0.0491, p = 0.044  [exposure-robust (AKM)]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   (shift route: the regressor is shift-share, EHW/cluster over-reject;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   the exposure-robust p is the one to read)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   coefficient near 0 =&gt; no differential pre-trend by exposure</span>
 </code></pre></div>
     </div>

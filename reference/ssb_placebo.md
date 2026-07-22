@@ -10,12 +10,7 @@ pre-trends.
 ## Usage
 
 ``` r
-ssb_placebo(
-  design,
-  placebo_y,
-  methods = c("ehw", "cluster", "akm"),
-  level = 0.95
-)
+ssb_placebo(design, placebo_y, methods = NULL, level = 0.95)
 ```
 
 ## Arguments
@@ -30,7 +25,8 @@ ssb_placebo(
 
 - methods:
 
-  Standard-error methods (see \[ssb_estimate()\]).
+  Standard-error methods (see \[ssb_estimate()\]); \`NULL\` (default)
+  uses the route-appropriate methods.
 
 - level:
 
@@ -48,10 +44,9 @@ sim$data$y_placebo <- stats::rnorm(nrow(sim$data))   # an unrelated outcome
 d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
 ssb_placebo(d, placebo_y = "y_placebo")
 #> <ssBartik placebo test>
+#>   route         : exogenous SHARE -> conventional (EHW / cluster) inference
 #>   first-stage F : 19.8
 #>   full IV re-estimated with a placebo outcome, which should be unaffected
-#>         method estimate std.error conf.low conf.high           note
-#>            EHW   0.0975    0.2027  -0.2999     0.495               
-#>  Clustering SE   0.0975        NA       NA        NA no cluster var
-#>            AKM   0.0975    0.0582  -0.0166     0.212               
+#>  method estimate std.error conf.low conf.high note
+#>     EHW   0.0975     0.203     -0.3     0.495     
 ```

@@ -29,7 +29,7 @@ weights are not automatically problematic."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,7 +72,7 @@ weights are not automatically problematic.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ssb_rotemberg</span><span class="op">(</span><span class="va">design</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ssb_rotemberg</span><span class="op">(</span><span class="va">design</span>, demean <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -82,14 +82,38 @@ weights are not automatically problematic.</p>
 <dl><dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
 <dd><p>An [ssb_design()] object.</p></dd>
 
+
+<dt id="arg-demean">demean<a class="anchor" aria-label="anchor" href="#arg-demean"></a></dt>
+<dd><p>Normalise the shocks by (within-period, exposure-weighted)
+demeaning before computing the weights (default `TRUE`; see Details).
+`FALSE` reproduces the raw-shock formula.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A `data.frame` of class `ssb_rotemberg`, one row per sector-cell,
-  with columns `sector`, `g` (shock), `alpha` (Rotemberg weight),
-  `beta` (just-identified estimate), `F` (first-stage F of that instrument),
-  and `sign`. Carries the overall estimate `beta_hat` as an attribute.
+  with columns `sector`, `g` (shock, after any demeaning), `alpha`
+  (Rotemberg weight), `beta` (just-identified estimate), `F` (first-stage F
+  of that instrument), and `sign`. Carries the overall estimate `beta_hat`
+  and the normalisation used (`demeaned`) as attributes.
   Pass it to [ssb_plot_rotemberg()] for the canonical figure.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>**Normalisation.** When the exposure shares sum to one (or the sum of
+shares is controlled, as it is automatically on the shift route), adding a
+constant to every shock leaves the instrument — and \(\hat\beta\) —
+unchanged but changes the individual weights: the decomposition is unique
+only up to a normalisation of the shocks. Following Goldsmith-Pinkham,
+Sorkin &amp; Swift and Borusyak-Hull-Jaravel, `demean = TRUE` (default)
+resolves this by demeaning the shocks with exposure weights, **within
+periods in a panel** (when the corresponding per-period constant directions
+are absorbed by the controls). If the constant is *not* absorbed
+(incomplete shares without a sum-of-shares control) the decomposition is
+already pinned down by the raw shocks; demeaning would then change it, so
+the raw shocks are kept, with a message. The just-identified estimates
+\(\hat\beta_n\), the first-stage Fs and \(\hat\beta\) itself are
+unaffected by the normalisation — only the weights are.</p>
     </div>
 
     <div class="section level2">
@@ -99,17 +123,18 @@ weights are not automatically problematic.</p>
 <span class="r-in"><span><span class="fu">ssb_rotemberg</span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ssBartik Rotemberg weights&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   overall beta_hat : 1.4468</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sum positive alpha : 1.013   sum negative alpha : -0.013</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   largest weight   : alpha = 0.532 (6)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ! one shock carries |alpha| = 0.53; check robustness via ssb_drop_top()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sum positive alpha : 1.005   sum negative alpha : -0.005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   largest weight   : alpha = 0.585 (6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ! one share instrument carries |alpha| = 0.58; check robustness via ssb_drop_top()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   shocks demeaned (overall, exposure-weighted) before weighting -- GPSS/BHJ normalisation</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   top 6 sectors by |alpha|:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  sector  alpha  beta     F</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       6 0.5323 1.486 12.24</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       3 0.2077 1.472  5.53</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       8 0.1330 0.631  1.54</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       4 0.0517 1.956  2.83</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       9 0.0359 2.041  1.22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       5 0.0349 1.651  1.94</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       6 0.5850 1.486 12.24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       3 0.1736 1.472  5.53</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       8 0.1109 0.631  1.54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       4 0.0875 1.956  2.83</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       9 0.0165 2.041  1.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       5 0.0130 1.651  1.94</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   (negative weights are not by themselves a red flag; see GPSS 2020)</span>
 </code></pre></div>
     </div>

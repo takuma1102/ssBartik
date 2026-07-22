@@ -55,9 +55,9 @@ d <- ssb_design(sim$data, sim$shares, sim$shocks, exogenous = "share")
 ssb_loo(d, top = 5)
 #> <ssBartik leave-one-out>  overall beta = 1.4468
 #>  sector  alpha beta_drop
-#>       6 0.5323      1.40
-#>       3 0.2077      1.44
-#>       8 0.1330      1.57
-#>       4 0.0517      1.42
-#>       9 0.0359      1.42
+#>       6 0.5850      1.40
+#>       3 0.1736      1.44
+#>       8 0.1109      1.57
+#>       4 0.0875      1.42
+#>       9 0.0165      1.42
 ```

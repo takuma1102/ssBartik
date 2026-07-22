@@ -31,7 +31,7 @@ intervals differ, which is exactly what makes the comparison instructive."></hea
 
     <a class="navbar-brand me-2" href="../index.html">ssBartik</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,7 +76,7 @@ intervals differ, which is exactly what makes the comparison instructive.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ssb_estimate</span><span class="op">(</span></span>
 <span>  <span class="va">design</span>,</span>
-<span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ehw"</span>, <span class="st">"cluster"</span>, <span class="st">"akm"</span>, <span class="st">"akm0"</span><span class="op">)</span>,</span>
+<span>  methods <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  cluster2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  shock_cluster <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -92,9 +92,11 @@ intervals differ, which is exactly what makes the comparison instructive.</p>
 
 
 <dt id="arg-methods">methods<a class="anchor" aria-label="anchor" href="#arg-methods"></a></dt>
-<dd><p>Which methods to report. Defaults to `ehw`, `cluster`, `akm`,
-`akm0`; add `"iid"` (homoskedastic) and/or `"twoway"` for two-way
-clustering. `cluster` needs the design's `cluster` column (else `NA`).</p></dd>
+<dd><p>Which methods to report. `NULL` (default) resolves by the
+design's route: `c("ehw", "cluster")` on the share route (dropping
+`cluster` if no cluster variable is set), `c("akm", "akm0")` on the
+shift route. Supply a character vector of `"iid"`, `"ehw"`, `"cluster"`,
+`"twoway"`, `"akm"`, `"akm0"` to override.</p></dd>
 
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
@@ -112,15 +114,19 @@ variance: a column name in the shocks table, or a vector of length equal
 to the number of shock-cells. Use it when shocks are mutually correlated
 within groups — e.g. sub-industries within broader industries, or
 sector cells of the same sector across periods — so the exposure-robust
-variance is clustered at the group level (Adao, Kolesar &amp; Morales 2019;
-passed to <span class="pkg">ShiftShareSE</span> as `sector_cvar`).</p></dd>
+variance is clustered at the group level (Adao, Kolesar &amp; Morales 2019).
+It is passed to <span class="pkg">ShiftShareSE</span> as `sector_cvar`, which clusters the
+shock-level scores; the package's test suite verifies this against a
+hand-computed cluster-robust shock-level regression, so the grouping is
+genuinely used rather than shocks being treated as independent.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A `data.frame` of class `ssb_estimate` with one row per method
   (`estimate`, `std.error`, `conf.low`, `conf.high`), carrying the
-  first-stage F as an attribute. Plot with [ssb_plot_ci()].</p>
+  first-stage F and the identification route as attributes. Plot with
+  [ssb_plot_ci()].</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -134,33 +140,36 @@ an interval at all: it can be the whole real line or the complement of an
 interval (a union of two rays). <span class="pkg">ShiftShareSE</span> encodes the latter as
 `conf.low &gt; conf.high`; `ssb_estimate()` flags both cases in the `note`
 column and the table/plot methods render them accordingly.</p>
-<p>The default panel is `ehw` / `cluster` / `akm` / `akm0`: two classical
-robust SEs (heteroskedasticity- and cluster-robust) shown next to the two
-exposure-robust AKM / AKM0 intervals. `iid` (homoskedastic) and `twoway` are
-not in the default; request them explicitly via `methods` when wanted (e.g.
-`methods = c("iid", "ehw", "cluster", "twoway", "akm", "akm0")`, adding
-`cluster2` for two-way clustering). The `cluster` row needs a `cluster`
-column in the design (set via [ssb_design()]); without one it is reported as
-`NA` with a note rather than an error.</p>
+<p>**The default methods follow the identification route of the design**
+(Borusyak-Hull-Jaravel JEP practical guide):</p><ul><li><p>`exogenous = "share"` (Goldsmith-Pinkham-Sorkin-Swift):
+        identification comes from the shares, and conventional inference is
+        appropriate — the default is `ehw` plus `cluster` when the design
+        has a `cluster` variable.</p></li>
+<li><p>`exogenous = "shift"` (Borusyak-Hull-Jaravel; Adao-Kolesar-Morales):
+        with as-good-as-random shocks, conventional EHW / cluster standard
+        errors over-reject because residuals are correlated across units
+        with similar exposure — the default is the exposure-robust panel
+        `akm` / `akm0`.</p></li>
+</ul><p>Supplying `methods` explicitly overrides the default, e.g. to place the
+conventional and exposure-robust intervals side by side for a
+methodological comparison; the printed table always states the route so
+the headline inference is unambiguous. `iid` (homoskedastic) and `twoway`
+are only reported on request (add `cluster2` for two-way clustering). The
+`cluster` row needs a `cluster` column in the design (set via
+[ssb_design()]); without one it is reported as `NA` with a note rather
+than an error.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_simulate.html">ssb_simulate</a></span><span class="op">(</span>n_loc <span class="op">=</span> <span class="fl">80</span>, n_sec <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="ssb_design.html">ssb_design</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shares</span>, <span class="va">sim</span><span class="op">$</span><span class="va">shocks</span>, exogenous <span class="op">=</span> <span class="st">"share"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ssb_estimate</span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ssb_estimate</span><span class="op">(</span><span class="va">d</span><span class="op">)</span>   <span class="co"># share route: conventional (EHW) inference</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;ssBartik estimate&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   route         : exogenous SHARE -&gt; conventional (EHW / cluster) inference</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   first-stage F : 19.8</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         method estimate std.error conf.low conf.high</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            EHW     1.45     0.199     1.06      1.84</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Clustering SE     1.45        NA       NA        NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            AKM     1.45     0.105     1.24      1.65</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           AKM0     1.45       Inf     -Inf       Inf</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            note</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                  no cluster var</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  unbounded CI (weak instrument)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  method estimate std.error conf.low conf.high note</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     EHW     1.45     0.199     1.06      1.84     </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -25,7 +25,7 @@ ssb_design(
   cluster = NULL,
   share_col = "share",
   shock_col = "shock",
-  exogenous = c("shift", "share")
+  exogenous
 )
 ```
 
@@ -64,9 +64,11 @@ ssb_design(
 
   Optional character vector of control columns in \`data\`. Numeric
   columns enter linearly; factor or character columns are expanded into
-  dummies, so period or region fixed effects can be supplied as factors
-  (in panel shift-share designs, period fixed effects are usually
-  essential — shocks should be compared within periods).
+  dummies, so period or region fixed effects can be supplied as factors.
+  On the shift route, period fixed effects (interacted with the sum of
+  exposure shares) are added automatically in panels — shocks are
+  compared within periods; on the share route in panels, supply period
+  fixed effects here yourself.
 
 - weights:
 
@@ -86,9 +88,12 @@ ssb_design(
 
 - exogenous:
 
-  Which identification route to emphasise downstream: \`"shift"\`
-  (shocks) or \`"share"\` (shares). \`"shock"\`/\`"shares"\` are
-  accepted aliases.
+  \*\*Required.\*\* Which identification route the design rests on:
+  \`"shift"\` (exogenous shocks) or \`"share"\` (exogenous shares).
+  \`"shock"\`/\`"shares"\` are accepted aliases. There is no default:
+  the route determines the automatic controls, the appropriate standard
+  errors and the relevant diagnostics, so it must be chosen
+  deliberately.
 
 ## Value
 
@@ -97,13 +102,25 @@ An object of class \`ssb_design\`.
 ## Details
 
 The \*\*instrument is constructed identically\*\* whichever
-identification route you take; the \`exogenous\` argument only governs
-which \*diagnostics\* and \*controls\* are appropriate downstream (see
-\[ssb_pipeline()\]). Set \`exogenous = "share"\` for the
-exogenous-shares route (Goldsmith-Pinkham, Sorkin and Swift 2020;
-Rotemberg-weight diagnostics) or \`exogenous = "shift"\` for the
-exogenous-shocks route (Borusyak, Hull and Jaravel 2022; Adao, Kolesar
-and Morales 2019; shock-level diagnostics and AKM inference).
+identification route you take; the \`exogenous\` argument governs which
+\*inference\*, \*diagnostics\* and \*controls\* are appropriate
+downstream (see \[ssb_estimate()\], \[ssb_pipeline()\]). Set \`exogenous
+= "share"\` for the exogenous-shares route (Goldsmith-Pinkham, Sorkin
+and Swift 2020; Rotemberg-weight diagnostics and conventional inference)
+or \`exogenous = "shift"\` for the exogenous-shocks route (Borusyak,
+Hull and Jaravel 2022; Adao, Kolesar and Morales 2019; shock-level
+diagnostics and exposure-robust inference). Because the route is an
+identification assumption, it \*\*must be specified explicitly\*\* –
+there is no default.
+
+On the shift route the package adds the Borusyak-Hull-Jaravel controls
+automatically: with incomplete shares the per-unit \*\*sum of exposure
+shares\*\*, and in panels that sum \*\*interacted with period fixed
+effects\*\* (controlling only the overall sum is not enough in a panel –
+shocks must be compared within periods; with complete shares the
+interaction reduces to period fixed effects). These automatic columns
+are pruned of anything already spanned by your own \`controls\`, so
+supplying period fixed effects yourself is harmless.
 
 ## Examples
 

@@ -1,7 +1,7 @@
 # Render a leave-one-out table as LaTeX or Markdown
 
 Paste-ready version of the \[ssb_loo()\] sensitivity table (one row per
-dropped shock, with the re-estimated coefficient); the overall estimate
+dropped sector, with the re-estimated coefficient); the overall estimate
 is in a note.
 
 ## Usage

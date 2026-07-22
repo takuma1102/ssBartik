@@ -1,14 +1,14 @@
-# Re-estimate after dropping the top-weight shocks
+# Re-estimate after dropping the top-weight sectors
 
-Removes the \`n\` shocks with the largest absolute Rotemberg weight
-\*together\* and re-estimates, to see whether the headline result
-survives without the most influential shocks. (Contrast \[ssb_loo()\],
-which drops one at a time.)
+Removes the \`n\` sector-cells with the largest absolute Rotemberg
+weight \*together\* and re-estimates, to see whether the headline result
+survives without the most influential share instruments. (Contrast
+\[ssb_loo()\], which drops one at a time.)
 
 ## Usage
 
 ``` r
-ssb_drop_top(design, n = 5, methods = c("iid", "ehw", "akm", "akm0"))
+ssb_drop_top(design, n = 5, methods = NULL)
 ```
 
 ## Arguments
@@ -19,13 +19,13 @@ ssb_drop_top(design, n = 5, methods = c("iid", "ehw", "akm", "akm0"))
 
 - n:
 
-  Number of top-weight shocks to drop.
+  Number of top-weight sectors to drop.
 
 - methods:
 
-  Inference methods for the comparison, passed to \[ssb_estimate()\]
-  (defaults to the exposure-robust panel; add \`"cluster"\` /
-  \`"twoway"\` if wanted).
+  Inference methods for the comparison, passed to \[ssb_estimate()\].
+  \`NULL\` (default) uses the route-appropriate methods of
+  \[ssb_estimate()\].
 
 ## Value
 
@@ -41,8 +41,5 @@ ssb_drop_top(d, n = 3)
 #> <ssBartik drop-top-3>
 #>   dropped: 6, 3, 8 
 #>  method full reduced
-#>     IID 1.45    2.09
 #>     EHW 1.45    2.09
-#>     AKM 1.45    2.09
-#>    AKM0 1.45    2.09
 ```

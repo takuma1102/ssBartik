@@ -3,7 +3,12 @@
 Verifies numerically that the location-level shift-share IV estimate
 equals the shock-level IV estimate (Borusyak-Hull-Jaravel 2022). A
 near-zero difference is a strong internal-consistency check that the
-instrument and aggregation are behaving as intended.
+instrument and aggregation are behaving as intended. Equality is exact
+on the shift route, where the location-level regression carries the BHJ
+controls that translate into the shock-level constant and period fixed
+effects (the sum of exposure shares, interacted with period FE in
+panels) automatically; it is a shift-route diagnostic and is run there
+by \[ssb_pipeline()\].
 
 ## Usage
 

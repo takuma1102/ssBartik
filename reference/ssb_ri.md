@@ -56,6 +56,19 @@ be exact — the treatment also responds to the shocks through the first
 stage, and placebo draws with weak first stages give the ratio very
 heavy tails — so this function does not do that.
 
+\*\*The exchangeability assumption is stronger than shocks being
+as-good-as-random.\*\* Permutation validity requires the shocks (within
+a \`block\`) to be \*exchangeable\* — in particular, identically
+distributed up to reordering. The Borusyak-Hull-Jaravel framework only
+assumes shocks are as-good-as-randomly assigned (mean-independent of the
+unobservables), which allows their variances and higher moments to
+differ across cells; under that weaker assumption randomization
+inference can over- or under-reject. Use \`block\` to group shocks that
+are plausibly comparable draws (and to keep permutations within periods
+in panels), and treat the RI p-value as a complement to — not a
+substitute for — the exposure-robust inference in \[ssb_estimate()\] /
+\[ssb_shock_iv()\].
+
 ## Examples
 
 ``` r
@@ -66,4 +79,7 @@ ssb_ri(d, R = 199, seed = 1)
 #>   IV estimate   : 1.4468   (H0: beta = 0.000)
 #>   AR statistic  : 1.4664   (reduced form of y - beta0*x on the instrument)
 #>   RI p-value    : 0.0300   (199 permutations)
+#>   note: valid if shocks are EXCHANGEABLE (within blocks) -- stronger than
+#>         the as-good-as-random assumption of Borusyak-Hull-Jaravel, which
+#>         allows shock variances to differ; see ?ssb_ri
 ```

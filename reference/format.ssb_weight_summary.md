@@ -1,8 +1,8 @@
 # Render a Rotemberg-weight summary as LaTeX or Markdown
 
-Paste-ready version of the \[ssb_weight_summary()\] table (top shocks by
-weight), with the largest weight and the weight/estimate/F correlations
-in a note.
+Paste-ready version of the \[ssb_weight_summary()\] table (top share
+instruments by weight), with the largest weight and the
+weight/estimate/F correlations in a note.
 
 ## Usage
 

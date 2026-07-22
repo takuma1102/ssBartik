@@ -59,9 +59,9 @@ instruments.
 - [`ssb_shock_balance()`](https://takuma1102.github.io/ssBartik/reference/ssb_shock_balance.md)
   : Shock-level balance test
 - [`ssb_shock_iv()`](https://takuma1102.github.io/ssBartik/reference/ssb_shock_iv.md)
-  : Shock-level IV estimate
+  : Shock-level IV estimate with exposure-robust standard errors
 - [`ssb_overid()`](https://takuma1102.github.io/ssBartik/reference/ssb_overid.md)
-  : Overidentification / cross-instrument homogeneity test
+  : Overidentification test across the share instruments (Sargan-Hansen)
 
 ## Robustness and validity checks
 
@@ -71,7 +71,7 @@ randomization inference, recentering, and shock aggregation.
 - [`ssb_loo()`](https://takuma1102.github.io/ssBartik/reference/ssb_loo.md)
   : Leave-one-sector-out sensitivity
 - [`ssb_drop_top()`](https://takuma1102.github.io/ssBartik/reference/ssb_drop_top.md)
-  : Re-estimate after dropping the top-weight shocks
+  : Re-estimate after dropping the top-weight sectors
 - [`ssb_pretrend()`](https://takuma1102.github.io/ssBartik/reference/ssb_pretrend.md)
   : Pre-trend test
 - [`ssb_placebo()`](https://takuma1102.github.io/ssBartik/reference/ssb_placebo.md)
